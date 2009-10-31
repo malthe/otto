@@ -24,4 +24,4 @@ class DoctestCase(unittest.TestCase):
         m += manuel.codeblock.Manuel()
         m += manuel.capture.Manuel()
         return manuel.testing.TestSuite(
-            m, os.path.join('..', 'docs', 'getting_started.rst'))
+            m, os.path.join('..', '..', 'docs', 'getting_started.rst'))
