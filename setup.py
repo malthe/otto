@@ -22,6 +22,7 @@ REFERENCE = open(os.path.join(here, 'otto', 'docs', 'reference.rst')).read()
 long_description = "\n\n".join((README, INTRO, REFERENCE, CHANGES))
 long_description = long_description.replace('.. code-block:: python', '::')
 long_description = re.sub(r':mod:`(\D+)`', '*\\1*', long_description)
+long_description = long_description.decode('utf-8')
 
 version = sys.version_info[:3]
 
