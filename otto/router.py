@@ -88,7 +88,12 @@ def compile_routes(routes):
         if m is None:
             return
         groups = m.groups()
-        number = groups[1:].index(path)
+        try:
+            number = groups[1:].index(path)
+        # Can't find rout in groups, this means we probably have no routes
+        except ValueError:
+            return None
+
         matchdict = matchers[number](path).groupdict()
         return Match(routes[number], matchdict.pop('_star', None), matchdict)
 
