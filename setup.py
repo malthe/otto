@@ -1,3 +1,5 @@
+#!/usr/bin/env python # -- coding: utf-8 --
+
 __version__ = '0.1'
 
 import os
@@ -22,7 +24,6 @@ REFERENCE = open(os.path.join(here, 'otto', 'docs', 'reference.rst')).read()
 long_description = "\n\n".join((README, INTRO, REFERENCE, CHANGES))
 long_description = long_description.replace('.. code-block:: python', '::')
 long_description = re.sub(r':mod:`(\D+)`', '*\\1*', long_description)
-long_description = long_description.decode('utf-8')
 
 version = sys.version_info[:3]
 
@@ -41,6 +42,7 @@ setup(
     keywords="wsgi publisher router",
     author="Malthe Borch",
     author_email="mborch@gmail.com",
+    
     install_requires=install_requires,
     license='BSD',
     packages=find_packages(),
