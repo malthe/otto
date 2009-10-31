@@ -1,3 +1,5 @@
+from ..utils import make_environ
+
 servers = []
 
 class make_server(object):
@@ -6,12 +8,6 @@ class make_server(object):
 
     def serve_forever(self):
         servers.append(self)
-
-def make_environ(url):
-    return {
-        'PATH_INFO': url,
-        'REQUEST_METHOD': 'GET'
-        }
 
 def get_response(url):
     app = servers[-1].app
