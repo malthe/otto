@@ -29,9 +29,8 @@ Blah blah
 
 .. -> output
 
-  >>> from otto.tests.mock.simple_server import get_response
-  >>> "".join(get_response("/")).strip() == output.strip()
-  True
+  >>> from otto.tests.mock.simple_server import assert_response
+  >>> assert_response("/", app, output)
 
 
 Checking during traversal
@@ -77,8 +76,7 @@ This just renders the controller.
 
 .. -> output
 
-  >>> "".join(get_response(url.strip())).strip() == output.strip()
-  True
+  >>> assert_response(url, app, output)
 
 Requesting a protected url will give a different result.
 
@@ -96,6 +94,5 @@ This will output an error message.
 
 .. -> output
 
-  >>> "".join(get_response(url.strip())).strip() == output.strip()
-  True
+  >>> assert_response(url, app, output)
 

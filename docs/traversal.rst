@@ -49,7 +49,7 @@ The log now has entries for each step.
 .. -> output
 
   >>> from otto.tests.mock.simple_server import get_response
-  >>> res = get_response(url.strip())
+  >>> res = get_response(url, app)
   >>> repr(my_log) == output.strip()
   True
 
@@ -92,7 +92,7 @@ There is nothing in the log since the type did not match.
 .. -> output
 
   >>> from otto.tests.mock.simple_server import get_response
-  >>> res = get_response(url.strip())
+  >>> res = get_response(url, app)
   >>> repr(planet_log) == output.strip()
   True
 
@@ -111,7 +111,7 @@ logger.
 
 .. -> output
 
-  >>> res = get_response(url.strip())
+  >>> res = get_response(url, app)
   >>> repr(planet_log) == output.strip()
   True
 
@@ -154,6 +154,6 @@ will not activate any handlers.
 
 .. -> output
 
-  >>> res = get_response(url.strip())
+  >>> res = get_response(url, app)
   >>> repr(app.my_events) == output.strip()
   True
