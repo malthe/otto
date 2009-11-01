@@ -2,6 +2,27 @@ from functools import partial
 from .router import Router
 from .exc import Forbidden
 
+class Event(object):
+
+    def __init__(self):
+        self._reg = {}
+
+    def register(self, key, value):
+        self._reg[key] = value
+
+    def lookup(self, obj):
+        for key in self._get_variations(obj):
+            if key in self._reg:
+                yield self._reg[key]
+
+    def _get_variations(self, obj):
+        return type(obj).__mro__
+
+    def __call__(self, obj, *args, **kwargs):
+        for handler in self.lookup(obj):
+            handler(obj, *args, **kwargs)
+
+
 class Application(object):
     """WSGI-application.
 
@@ -18,16 +39,17 @@ class Application(object):
         self._router = Router()
         self._root_factories = {}
         self._root_factory = root_factory
+        self.traverse_event = Event()
 
     def __call__(self, environ, start_response):
         path = environ['PATH_INFO']
-        controller = self.match(path)
         try:
+            controller = self.match(path, environ)
             return controller(environ, start_response)
         except Forbidden:
             return self.forbidden(environ, start_response)
 
-    def match(self, path):
+    def match(self, path, environ):
         match = self._router(path)
         if match is None:
             return self.not_found
@@ -35,7 +57,7 @@ class Application(object):
         if match.path is not None:
             root_factory = self._root_factories[route]
             root = root_factory()
-            context = self.traverse(root, match.path)
+            context = self.traverse(root, match.path, environ)
             controller = route.get(type(context))
             return partial(controller, context, **match.dict)
         else:
@@ -61,12 +83,17 @@ class Application(object):
         self._root_factories[route] = root_factory
         return route
 
-    def traverse(self, root, path):
+    def traverse(self, root, path, environ):
         segments = path.split('/')
         context = root
         for segment in segments:
             context = context[segment]
+            self.traverse_event(context, environ, segment)
         return context
+
+    def on_traverse(self, func):
+        self.traverse_event.register(object, func)
+        return func
 
 class WebObApplication(Application):
     """WSGI-application which passed a ``webob.Request`` object to the
@@ -82,8 +109,8 @@ class WebObApplication(Application):
 
     def __call__(self, environ, start_response):
         path = environ['PATH_INFO']
-        controller = self.match(path)
         request = self._request_factory(environ)
+        controller = self.match(path, request)
         response = controller(request)
         return response(environ, start_response)
 

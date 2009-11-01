@@ -34,3 +34,68 @@ Blah blah
   True
 
 
+Checking during traversal
+-------------------------
+
+.. code-block:: python
+
+  class Resource(object):
+      def __init__(self, name):
+          self.name = name
+
+      def __getitem__(self, key):
+          return Resource(key)
+
+  root = Resource('root')
+
+  app = otto.Application(lambda: root)
+
+  @app.route("/*")
+  def hello_world(context, environ, start_response):
+      return context.name
+
+  @app.on_traverse
+  def check_not_world(context, environ, name):
+      if name == 'world':
+          raise exc.Forbidden
+
+  wsgiref.simple_server.make_server('', 8080, app).serve_forever()
+
+Let's request the following url.
+
+::
+
+  /hello
+
+.. -> url
+
+This just renders the controller.
+
+::
+
+  hello
+
+.. -> output
+
+  >>> "".join(get_response(url.strip())).strip() == output.strip()
+  True
+
+Requesting a protected url will give a different result.
+
+:: -> url
+
+  /hello/world
+
+.. -> url
+
+This will output an error message.
+
+::
+
+  Access was denied.
+
+.. -> output
+
+  >>> "".join(get_response(url.strip())).strip() == output.strip()
+  True
+

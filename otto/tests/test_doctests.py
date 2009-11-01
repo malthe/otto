@@ -25,5 +25,5 @@ class DoctestCase(unittest.TestCase):
         m += manuel.codeblock.Manuel()
         m += manuel.capture.Manuel()
         join = partial(os.path.join, '..', '..', 'docs')
-        docs = ('getting_started.rst', 'security.rst')
+        docs = ('getting_started.rst', 'security.rst', 'traversal.txt')
         return manuel.testing.TestSuite(m, *map(join, docs))
