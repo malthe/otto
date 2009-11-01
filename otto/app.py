@@ -39,7 +39,7 @@ class Application(object):
         self._router = Router()
         self._root_factories = {}
         self._root_factory = root_factory
-        self.traverse_event = Event()
+        self._traverse_event = Event()
 
     def __call__(self, environ, start_response):
         path = environ['PATH_INFO']
@@ -91,13 +91,16 @@ class Application(object):
             self.traverse_event(context, environ, segment)
         return context
 
+    def traverse_event(self, context, environ, segment):
+        self._traverse_event(context, environ, segment)
+
     def on_traverse(self, func=None, **kwargs):
         if 'type' in kwargs:
             def register(func):
-                self.traverse_event.register(kwargs['type'], func)
+                self._traverse_event.register(kwargs['type'], func)
                 return func
             return register
-        self.traverse_event.register(object, func)
+        self._traverse_event.register(object, func)
         return func
 
 class WebObApplication(Application):
