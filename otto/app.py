@@ -91,7 +91,12 @@ class Application(object):
             self.traverse_event(context, environ, segment)
         return context
 
-    def on_traverse(self, func):
+    def on_traverse(self, func=None, **kwargs):
+        if 'type' in kwargs:
+            def register(func):
+                self.traverse_event.register(kwargs['type'], func)
+                return func
+            return register
         self.traverse_event.register(object, func)
         return func
 
