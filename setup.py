@@ -18,7 +18,7 @@ README = open(os.path.join(here, 'README.rst')).read()
 CHANGES = open(os.path.join(here, 'CHANGES.rst')).read()
 
 # documentation
-INTRO = open(os.path.join(here, 'otto', 'docs', 'getting_started.rst')).read()
+INTRO = open(os.path.join(here, 'docs', 'getting_started.rst')).read()
 REFERENCE = open(os.path.join(here, 'docs', 'reference.rst')).read()
 USERSGUIDE = open(os.path.join(here, 'docs', 'usersguide.rst')).read()
 GUIDELINES = open(os.path.join(here, 'docs', 'guidelines.rst')).read()
