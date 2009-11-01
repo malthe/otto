@@ -1,0 +1,35 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      xmlns:metal="http://xml.zope.org/namespaces/metal">
+<metal:mastermacro define-macro="master">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<title><metal:title define-slot="titleslot">Title</metal:title></title>
+<meta name="keywords" content="filedrop bfg web application" />
+<meta name="description" content="Application to serve as a simple filedrop." />
+<link rel="stylesheet" href="${request.application_url}/static/screen.css" type="text/css" media="screen, projection" />
+<link rel="stylesheet" href="${request.application_url}/static/print.css" type="text/css" media="print" /> 
+<link rel="stylesheet" href="${request.application_url}/static/custom.css" type="text/css" media="screen" /> 
+<!--[if IE]>
+  <link rel="stylesheet" href="css/blueprint/ie.css" type="text/css" media="screen, projection">
+<![endif]-->
+</head>
+<body>
+<div id="pagewrapper" class="container">
+	<div class="span-24">
+ 	  <div metal:define-slot="headerslot">
+              <h1 id="headertitle">firstApp</h1>
+          </div>
+	</div>
+	<div class="span-24">
+	    <div id="contentarea">
+ 	      <div metal:define-slot="contentslot">
+		 M a i n c o n t e n t
+	      </div>
+	    </div>
+	</div>
+</div>
+</body>
+</metal:mastermacro>
+</html>
