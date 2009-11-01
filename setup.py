@@ -19,9 +19,12 @@ CHANGES = open(os.path.join(here, 'CHANGES.rst')).read()
 
 # documentation
 INTRO = open(os.path.join(here, 'otto', 'docs', 'getting_started.rst')).read()
-REFERENCE = open(os.path.join(here, 'otto', 'docs', 'reference.rst')).read()
+REFERENCE = open(os.path.join(here, 'docs', 'reference.rst')).read()
+USERSGUIDE = open(os.path.join(here, 'docs', 'usersguide.rst')).read()
+GUIDELINES = open(os.path.join(here, 'docs', 'guidelines.rst')).read()
 
-long_description = "\n\n".join((README, INTRO, REFERENCE, CHANGES))
+long_description = "\n\n".join((
+    README, INTRO, REFERENCE, USERSGUIDE, GUIDELINES, CHANGES))
 long_description = long_description.replace('.. code-block:: python', '::')
 long_description = re.sub(r':mod:`(\D+)`', '*\\1*', long_description)
 
@@ -42,7 +45,6 @@ setup(
     keywords="wsgi publisher router",
     author="Malthe Borch",
     author_email="mborch@gmail.com",
-    
     install_requires=install_requires,
     license='BSD',
     packages=find_packages(),
