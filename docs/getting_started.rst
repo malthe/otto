@@ -9,14 +9,14 @@ serve up the *hello world* application.
   #!/usr/bin/env python2.6
 
   import otto
+  import webob
   import wsgiref.simple_server
 
   app = otto.Application()
 
   @app.route("/")
-  def hello_world(environ, start_response):
-      start_response('200 OK', [])
-      return "Hello world!",
+  def hello_world(request):
+      return webob.Response(u"Hello world!")
 
   wsgiref.simple_server.make_server('', 8080, app).serve_forever()
 
@@ -47,9 +47,8 @@ return a personal greeting.
 .. code-block:: python
 
   @app.route("/:name")
-  def hello_name(environ, start_response, name=None):
-      start_response('200 OK', [])
-      return "Hello %s!" % name.capitalize(),
+  def hello_name(request, name=None):
+      return webob.Response(u"Hello %s!" % name.capitalize())
 
 If we visit `http://localhost:8080/otto`, we get::
 
@@ -95,9 +94,8 @@ traverse any URL.
   app = otto.Application(lambda: root)
 
   @app.route("/*")
-  def controller(food, environ, start_response):
-      start_response('200 OK', [])
-      return "This is a %s." % food.name.lower(),
+  def controller(food, request):
+      return webob.Response(u"This is a %s." % food.name.lower())
 
 If we visit `http://localhost:8080/banana`, we get::
 
@@ -119,14 +117,12 @@ We can provide different controllers for different kinds of objects.
 
   @index.controller(type=Fruit)
   @index.controller(type=Vegetable)
-  def like(food, environ, start_response):
-      start_response('200 OK', [])
-      return u"I like to eat %ss." % food.name.lower(),
+  def like(food, request):
+      return webob.Response(u"I like to eat %ss." % food.name.lower())
 
   @index.controller(type=Meat)
-  def dislike(food, environ, start_response):
-      start_response('200 OK', [])
-      return u"I don't like to eat %ss." % food.name.lower(),
+  def dislike(food, request):
+      return webob.Response(u"I don't like to eat %ss." % food.name.lower())
 
 If we visit `http://localhost:8080/banana` and the other object names,
 respectively, we get::
@@ -149,42 +145,3 @@ Traversal is good for hierarchical data, for instance that of an
 object database or a file system.
 
 .. [#] The act of descending “down” a graph of model objects from a root model in order to find a context.
-
-.. _Using WebOb:
-
-Using WebOb
------------
-
-The :mod:`WebOb` library abstracts the WSGI protocol into request and
-response objects. We can rewrite the *hello world* application to make
-use of this library.
-
-.. code-block:: python
-
-  #!/usr/bin/env python2.6
-
-  import otto
-  import webob
-  import wsgiref
-
-  app = otto.WebObApplication()
-
-  @app.route("/")
-  def hello_world(request):
-      return webob.Response(u"Hello world!")
-
-  wsgiref.simple_server.make_server('', 8080, app).serve_forever()
-
-The response object makes sure to start the response before sending
-data; it assumes the status code ``200 OK``.
-
-::
-
-  Hello world!
-
-.. -> output
-
-  >>> from otto.tests.mock.simple_server import get_response
-  >>> "".join(get_response("/")).strip() == output.strip()
-  True
-
