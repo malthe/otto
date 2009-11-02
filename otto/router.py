@@ -92,7 +92,7 @@ def compile_routes(routes):
             number = groups[1:].index(path)
         except ValueError:
             if routes: raise
-
+            return
         matchdict = matchers[number](path).groupdict()
         return Match(routes[number], matchdict.pop('_star', None), matchdict)
 

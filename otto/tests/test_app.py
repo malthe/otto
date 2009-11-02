@@ -1,10 +1,9 @@
 import unittest
 
-class WebObApplicationCase(unittest.TestCase):
-
+class ApplicationCase(unittest.TestCase):
     def test_not_found(self):
-        from otto.app import WebObApplication
+        from otto import Application
         from otto.tests.utils import get_response
-        app = WebObApplication()
+        app = Application()
         self.assertEqual(get_response(app, '/path'), ['Page not found'])
 
