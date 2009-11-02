@@ -1,4 +1,7 @@
 from functools import partial
+
+from webob.exc import HTTPMovedPermanently
+
 from .router import Router
 from .exc import Forbidden
 
@@ -52,6 +55,15 @@ class Application(object):
     def match(self, path, environ):
         match = self._router(path)
         if match is None:
+            if path.endswith('/'):
+                path = path[:-1]
+            else:
+                path = path + '/'
+            if self._router(path):
+                if self._router(path) is not None:
+                    def redirect(request):
+                        return HTTPMovedPermanently(location=path)
+                    return redirect
             return self.not_found
         route = match.route
         if match.path is not None:
