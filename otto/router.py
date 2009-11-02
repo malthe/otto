@@ -115,8 +115,6 @@ class Route(object):
             controller = get(base)
             if controller is not None:
                 return controller
-        raise TypeError("No controller found for type %s (route: %s)." % (
-            cls.__name__, self.path))
 
     def controller(self, type=object):
         def handler(func):
