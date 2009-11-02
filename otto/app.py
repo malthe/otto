@@ -4,27 +4,7 @@ from webob.exc import HTTPMovedPermanently
 
 from .router import Router
 from .exc import Forbidden
-
-class Event(object):
-
-    def __init__(self):
-        self._reg = {}
-
-    def register(self, key, value):
-        self._reg[key] = value
-
-    def lookup(self, obj):
-        for key in self._get_variations(obj):
-            if key in self._reg:
-                yield self._reg[key]
-
-    def _get_variations(self, obj):
-        return type(obj).__mro__
-
-    def __call__(self, obj, *args, **kwargs):
-        for handler in self.lookup(obj):
-            handler(obj, *args, **kwargs)
-
+from .event import Event
 
 class Application(object):
     """WSGI-application.

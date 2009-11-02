@@ -13,7 +13,13 @@ class DoctestCase(unittest.TestCase):
     @classmethod
     def test_router(cls):
         import otto.router
-        return doctest.DocTestSuite(otto.router, optionflags=OPTIONFLAGS)
+        import otto.event
+        suite = unittest.TestSuite()
+        suite.addTest(doctest.DocTestSuite(otto.router,
+                                           optionflags=OPTIONFLAGS))
+        suite.addTest(doctest.DocTestSuite(otto.event,
+                                           optionflags=OPTIONFLAGS))
+        return suite
 
     @classmethod
     def test_tutorial(cls):
