@@ -5,5 +5,5 @@ class ApplicationCase(unittest.TestCase):
         from otto import Application
         from otto.tests.utils import get_response
         app = Application()
-        self.assertEqual(get_response(app, '/path'), ['Page not found'])
+        self.assertEqual(get_response(app, '/path'), ['Page not found.'])
 

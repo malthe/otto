@@ -1,17 +1,14 @@
-from ..utils import make_environ
-
-servers = []
+from ..utils import get_response
 
 class make_server(object):
     def __init__(self, host, port, app):
         self.app = app
 
     def serve_forever(self):
-        servers.append(self)
-
-def get_response(url):
-    app = servers[-1].app
-    environ = make_environ(url)
-    def start_response(*args):
         pass
-    return app(environ, start_response)
+
+def assert_response(url, app, value):
+    response = get_response(app, url)
+    result = ''.join(response).strip()
+    value = value.strip()
+    assert result == value, "Response: %s does not match: %s" % (result, value)

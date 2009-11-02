@@ -33,9 +33,8 @@ This serves up the application on `http://localhost:8080`.
 
 .. -> output
 
-  >>> from otto.tests.mock.simple_server import get_response
-  >>> "".join(get_response("/")).strip() == output.strip()
-  True
+  >>> from otto.tests.mock.simple_server import assert_response
+  >>> assert_response("/", app, output)
 
 We can extract values from the path using ``:key`` notation. This
 works on any path segment and returns a unicode string value which is
@@ -54,11 +53,10 @@ If we visit `http://localhost:8080/otto`, we get::
 
   Hello Otto!
 
+
 .. -> output
 
-  >>> from otto.tests.mock.simple_server import get_response
-  >>> "".join(get_response("/otto")).strip() == output.strip()
-  True
+  >>> assert_response("/otto", app, output)
 
 Routes can use traversal [#]_ to walk an object graph from the path
 segments which are then understood as names (or keys). This requires a
@@ -103,10 +101,7 @@ If we visit `http://localhost:8080/banana`, we get::
 
 .. -> output
 
-  >>> wsgiref.simple_server.make_server('', 8080, app).serve_forever()
-  >>> from otto.tests.mock.simple_server import get_response
-  >>> "".join(get_response("/banana")).strip() == output.strip()
-  True
+  >>> assert_response("/banana", app, output)
 
 We can provide different controllers for different kinds of objects.
 
@@ -133,13 +128,10 @@ respectively, we get::
 
 .. -> output
 
-  >>> wsgiref.simple_server.make_server('', 8080, app).serve_forever()
-  >>> from otto.tests.mock.simple_server import get_response
-  >>> responses = "".join(get_response("/banana")), \
-  ...             "".join(get_response("/carrot")), \
-  ...             "".join(get_response("/monkey"))
-  >>> "\n".join(responses).strip() == output.strip()
-  True
+  >>> banana, carrot, monkey = output.splitlines()
+  >>> assert_response("/banana", app, banana)
+  >>> assert_response("/carrot", app, carrot)
+  >>> assert_response("/monkey", app, monkey)
 
 Traversal is good for hierarchical data, for instance that of an
 object database or a file system.

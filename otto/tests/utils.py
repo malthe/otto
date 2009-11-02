@@ -5,7 +5,7 @@ def make_environ(url):
         }
 
 def get_response(app, url):
-    env = make_environ(url)
+    environ = make_environ(url.strip())
     def start_response(*args):
         pass
-    return app(env, start_response)
+    return app(environ, start_response)
