@@ -22,7 +22,7 @@ class DoctestCase(unittest.TestCase):
         return suite
 
     @classmethod
-    def test_tutorial(cls):
+    def test_docs(cls):
         import manuel.testing
         import manuel.codeblock
         import manuel.doctest
@@ -30,6 +30,12 @@ class DoctestCase(unittest.TestCase):
         m = manuel.doctest.Manuel()
         m += manuel.codeblock.Manuel()
         m += manuel.capture.Manuel()
-        join = partial(os.path.join, '..', '..', 'docs')
-        docs = ('getting_started.rst', 'security.rst', 'traversal.rst')
-        return manuel.testing.TestSuite(m, *map(join, docs))
+
+        import pkg_resources
+        filename = partial(pkg_resources.resource_filename, "otto")
+
+        path = filename("docs")
+        docs = [os.path.join(path, filename)
+                for filename in os.listdir(path)]
+
+        return manuel.testing.TestSuite(m, *docs)

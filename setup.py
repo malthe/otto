@@ -1,6 +1,6 @@
 #!/usr/bin/env python # -- coding: utf-8 --
 
-__version__ = '0.1'
+__version__ = ''
 
 import os
 import re
@@ -17,14 +17,8 @@ here = os.path.abspath(os.path.dirname(__file__))
 README = open(os.path.join(here, 'README.rst')).read()
 CHANGES = open(os.path.join(here, 'CHANGES.rst')).read()
 
-# documentation
-INTRO = open(os.path.join(here, 'docs', 'getting_started.rst')).read()
-REFERENCE = open(os.path.join(here, 'docs', 'reference.rst')).read()
-USERSGUIDE = open(os.path.join(here, 'docs', 'usersguide.rst')).read()
-GUIDELINES = open(os.path.join(here, 'docs', 'guidelines.rst')).read()
-
 long_description = "\n\n".join((
-    README, INTRO, REFERENCE, USERSGUIDE, GUIDELINES, CHANGES))
+    README, CHANGES))
 long_description = long_description.replace('.. code-block:: python', '::')
 long_description = re.sub(r':mod:`(\D+)`', '*\\1*', long_description)
 
