@@ -10,14 +10,10 @@ class ApplicationCase(unittest.TestCase):
     def test_forbidden(self):
         from otto import Application
         from otto.tests.utils import get_response
-        app = Application(lambda: {'path': u"Access was granted."})
+        app = Application()
         import webob.exc
-        @app.route('/*')
-        def controller_with(context, request):
-            return webob.Response(context)
-        self.assertEqual(get_response(app, '/path'), ['Access was granted.'])
-        @app.on_traverse
-        def handler(context, name):
-            raise webob.exc.HTTPForbidden("Traversal disabled.")
-        self.assertEqual(get_response(app, '/path'), ['Access was denied.'])
-
+        @app.route('/')
+        def controller(request):
+            raise webob.exc.HTTPForbidden("Forbidden.")
+        response = get_response(app, '/')
+        self.assertTrue('Forbidden' in "".join(response))

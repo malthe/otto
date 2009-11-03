@@ -6,12 +6,9 @@ from webob.exc import HTTPError
 from webob.exc import HTTPForbidden
 
 from .router import Router
-from .event import Event
 
 class Application(object):
     """WSGI-application.
-
-    :param root_factory: callable which returns a root object
 
     The application matches a route from the routing table and calls
     the route controller. The request object is passed; controllers
@@ -21,12 +18,10 @@ class Application(object):
     the first argument.
     """
 
-    _traverse_event = None
-
-    def __init__(self, root_factory=None):
+    def __init__(self, factory=None):
         self._router = Router()
-        self._root_factories = {}
-        self._root_factory = root_factory
+        self._factory = factory
+        self._factories = {}
 
     def __call__(self, environ, start_response):
         path = environ['PATH_INFO']
@@ -35,10 +30,7 @@ class Application(object):
         if match is None:
             controller = self.not_found
         else:
-            try:
-                controller = self.bind(match)
-            except HTTPForbidden:
-                controller = self.forbidden
+            controller = self.bind(match)
         try:
             response = controller(request)
         except HTTPError, response:
@@ -48,44 +40,20 @@ class Application(object):
     def bind(self, match):
         route = match.route
         if match.path is not None:
-            root_factory = self._root_factories[route]
-            root = root_factory()
-            context = self.traverse(root, match.path)
+            factory = self._factories[route]
+            context = factory(match.path)
             controller = route.get(type(context))
             return partial(controller, context, **match.dict)
         else:
             controller = route.get()
             return partial(controller, **match.dict)
 
-    def route(self, path, root_factory=None):
-        if root_factory is None:
-            root_factory = self._root_factory
+    def route(self, path, factory=None):
+        if factory is None:
+            factory = self._factory
         route = self._router.new(path)
-        self._root_factories[route] = root_factory
+        self._factories[route] = factory
         return route
-
-    def traverse(self, root, path):
-        segments = path.split('/')
-        context = root
-        event = self._traverse_event
-        for segment in segments:
-            context = context[segment]
-            if event is not None:
-                event(context, segment)
-        return context
-
-    def on_traverse(self, func=None, type=None, **kwargs):
-        event = self.__dict__.setdefault('_traverse_event', Event())
-        if type is not None:
-            def register(func):
-                event.register(type, func)
-                return func
-            return register
-        event.register(object, func)
-        return func
-
-    def forbidden(self, request):
-        return Response(u"Access was denied.", status="403 Forbidden")
 
     def not_found(self, request):
         return Response(u"Page not found.", status="404 Not Found")

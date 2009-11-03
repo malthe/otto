@@ -58,82 +58,56 @@ If we visit `http://localhost:8080/otto`, we get::
 
   >>> assert_response("/otto", app, output)
 
-Routes can use traversal [#]_ to walk an object graph from the path
-segments which are then understood as names (or keys). This requires a
-dictionary (or dictionary-like) root object (the requirement is to
-provide the ``__getitem__`` method). To configure the router for
-traversal, a *root factory* must be passed on initialization. This is
-a callable which takes no arguments and returns the root object.
-
-The snippet sets up three different kinds of objects for use with
-traversal, creates a new application and adds a route which tries to
-traverse any URL.
+Routes can include the asterix character to match any number of path
+segments in a non-greedy way. The path is passed to the *route
+factory* callable [#]_ and the result is passed to the controller as
+the first argument.
 
 .. code-block:: python
 
-  class Food(object):
-      def __init__(self, name):
-          self.name = name
+  import sys
 
-  class Fruit(Food): pass
-  class Vegetable(Food): pass
-  class Meat(Food): pass
+  def importer(path):
+      name = path.replace('/', '.')
+      __import__(name)
+      return sys.modules[name]
 
-  banana = Fruit(u"Banana")
-  carrot = Vegetable(u"Carrot")
-  monkey = Meat(u"Monkey")
+  app = otto.Application(importer)
 
-  root = {
-     'banana': banana,
-     'carrot': carrot,
-     'monkey': monkey
-     }
+  @app.route("/repr/*/:name")
+  def controller(module, request, name=None):
+      obj = getattr(module, name)
+      return webob.Response(repr(obj))
 
-  app = otto.Application(lambda: root)
+If we visit `http://localhost:8080/repr/math/pi`, we get::
 
-  @app.route("/*")
-  def controller(food, request):
-      return webob.Response(u"This is a %s." % food.name.lower())
-
-If we visit `http://localhost:8080/banana`, we get::
-
-  This is a banana.
+  3.1415926535897931
 
 .. -> output
 
-  >>> assert_response("/banana", app, output)
+  >>> assert_response("/repr/math/pi", app, output)
 
-We can provide different controllers for different kinds of objects.
+We can define controllers by the type of the object returned by the
+factory.
 
 .. code-block:: python
 
-  app = otto.Application(lambda: root)
-  index = app.route("/*")
+  index = app.route("/docs/*")
 
-  @index.controller(type=Fruit)
-  @index.controller(type=Vegetable)
-  def like(food, request):
-      return webob.Response(u"I like to eat %ss." % food.name.lower())
+  @index.controller(type=str)
+  def doc(module, request):
+      return webob.Response(unicode(module.__doc__))
 
-  @index.controller(type=Meat)
-  def dislike(food, request):
-      return webob.Response(u"I don't like to eat %ss." % food.name.lower())
+If we visit `http://localhost:8080/docs/hotshot/stats` we get::
 
-If we visit `http://localhost:8080/banana` and the other object names,
-respectively, we get::
-
-  I like to eat bananas.
-  I like to eat carrots.
-  I don't like to eat monkeys.
+  Statistics analyzer for HotShot.
 
 .. -> output
 
-  >>> banana, carrot, monkey = output.splitlines()
-  >>> assert_response("/banana", app, banana)
-  >>> assert_response("/carrot", app, carrot)
-  >>> assert_response("/monkey", app, monkey)
+  >>> assert_response("/docs/hotshot/stats", app, output)
 
-Traversal is good for hierarchical data, for instance that of an
-object database or a file system.
+.. [#] An example of such a factory is a traverser which descends
+.. “down” a graph of model objects in order to find a
+.. context. Traversal is good for hierarchical data, for instance that
+.. of an object database or a file system.
 
-.. [#] The act of descending “down” a graph of model objects from a root model in order to find a context.

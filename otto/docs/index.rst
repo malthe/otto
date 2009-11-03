@@ -13,7 +13,6 @@ Contents
 
    getting_started.rst
    security.rst
-   traversal.rst
    reference.rst
    usersguide.rst
    guidelines.rst
