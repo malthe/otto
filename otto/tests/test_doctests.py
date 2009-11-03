@@ -13,11 +13,8 @@ class DoctestCase(unittest.TestCase):
     @classmethod
     def test_modules(cls):
         import otto.router
-        import otto.event
         suite = unittest.TestSuite()
         suite.addTest(doctest.DocTestSuite(otto.router,
-                                           optionflags=OPTIONFLAGS))
-        suite.addTest(doctest.DocTestSuite(otto.event,
                                            optionflags=OPTIONFLAGS))
         return suite
 

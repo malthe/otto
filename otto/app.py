@@ -1,10 +1,7 @@
 from functools import partial
 from webob import Request
 from webob import Response
-
 from webob.exc import HTTPError
-from webob.exc import HTTPForbidden
-
 from .router import Router
 
 class Application(object):
