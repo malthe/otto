@@ -60,6 +60,8 @@ traversed path have been logged to the list.
 The ``on_traverse`` decorator accepts a ``type`` parameter; the event
 handler is only called if the type matches the traversal context.
 
+.. invisible-code-block: python
+
   >>> del log[:]
 
 .. code-block:: python

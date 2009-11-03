@@ -1,13 +1,11 @@
 Overview
 ========
 
-Otto uses a routes-like syntax to map URLs to code and supports
-object traversal.
+Otto is an HTTP publisher which uses a routes-like syntax to map URLs
+to code. It supports object traversal.
 
 You can use the publisher to write web applications. It was designed
-with both small and large applications in mind. The documentation
-includes a tutorial and examples which show how to solve common
-problems.
+with both small and large applications in mind. In particular, it tries to conform to the :term:`Zen Of Python`.
 
 .. code-block:: python
 

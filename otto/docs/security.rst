@@ -7,6 +7,8 @@ should make assertions using the exception classes from the
 
 An example:
 
+.. invisible-code-block: python
+
   >>> import otto
   >>> import webob.exc
   >>> import wsgiref.simple_server
@@ -18,6 +20,8 @@ An example:
   def controller(request):
       raise webob.exc.HTTPForbidden("Server not accessible.")
 
+.. invisible-code-block: python
+
   >>> wsgiref.simple_server.make_server('', 8080, app).serve_forever()
 
 If we browse to ``http://localhost:8080/`` we get::
@@ -26,7 +30,7 @@ If we browse to ``http://localhost:8080/`` we get::
 
   Access was denied to this resource.
 
-   Server not accessible.
+  Server not accessible.
 
 .. -> output
 
