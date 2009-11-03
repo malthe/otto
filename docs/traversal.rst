@@ -1,159 +1,87 @@
 Traversal
 =========
 
+Traversal is the act of descending “down” a graph of model objects
+from a root model in order to find a context.
 
-Events
-------
+Event
+-----
 
-A traversal event is triggered for each step in the traversal
-process. This makes it easy to add security checks or logging etc.
+After each traversal step, the ``on_traverse`` event is
+triggered. Example applications include logging and security
+assertions.
+
+This example logs all traversal steps.
 
 .. code-block:: python
 
   #!/usr/bin/env python2.6
 
   import otto
-  from otto import exc
+  import webob.exc
   import wsgiref.simple_server
 
-  root = {'hello': {'world': 'Earth'}}
+  # content hierarchy
+  root = {
+    "some": {
+       "path": u"Hello world!"
+       }
+    }
 
   app = otto.Application(lambda: root)
 
   @app.route("/*")
-  def hello_world(context, environ, start_response):
-      return 'Hello ', context
+  def hello_world(context, request):
+      return webob.Response(context)
 
-  my_log = []
+  log = []
 
   @app.on_traverse
-  def handle_traverse(context, environ, name):
-      my_log.append(name)
+  def log_any(context, name):
+      log.append(name)
 
   wsgiref.simple_server.make_server('', 8080, app).serve_forever()
 
-Let's request the following url.
+If we request the URL ``http://localhost:8080/some/path``, the
+traversed path have been logged to the list.
 
 ::
 
-  /hello/world
-
-.. -> url
-
-The log now has entries for each step.
-
-::
-
-  ['hello', 'world']
+  ['some', 'path']
 
 .. -> output
 
   >>> from otto.tests.mock.simple_server import get_response
-  >>> res = get_response(url, app)
-  >>> repr(my_log) == output.strip()
+  >>> "".join(get_response(app, "/some/path"))
+  'Hello world!'
+  >>> repr(log) == output.strip()
   True
 
-A common use-case is to filter on type. This is support by the system
-directly.
+The ``on_traverse`` decorator accepts a ``type`` parameter; the event
+handler is only called if the type matches the traversal context.
+
+  >>> del log[:]
 
 .. code-block:: python
 
-  app = otto.Application(lambda: root)
-
-  class Greeting(object): pass
-  class Planet(object): pass
-
-  root = {'hello': Greeting(), 'world': Planet()}
-
-  @app.route("/*")
-  def hello_world(context, environ, start_response):
-      return 'Hello ', str(context)
-
-  planet_log = []
-
-  @app.on_traverse(type=Planet)
-  def planet_traverse(context, environ, name):
-      planet_log.append(name)
+  @app.on_traverse(type=unicode)
+  def log_unicode(context, name):
+      log.append(context)
 
   wsgiref.simple_server.make_server('', 8080, app).serve_forever()
 
-::
-
-  /hello
-
-.. -> url
-
-There is nothing in the log since the type did not match.
+The ``log_unicode`` handler is called before the general handler since
+it's more specialized.
 
 ::
 
-  []
+  ['some', u'Hello world!', 'path']
 
 .. -> output
 
   >>> from otto.tests.mock.simple_server import get_response
-  >>> res = get_response(url, app)
-  >>> repr(planet_log) == output.strip()
+  >>> "".join(get_response(app, "/some/path"))
+  'Hello world!'
+  >>> repr(log) == output.strip()
   True
 
-Requesting the url that matches a planet will trigger the planet
-logger.
-
-::
-
-  /world
-
-.. -> url
-
-::
-
-  ['world']
-
-.. -> output
-
-  >>> res = get_response(url, app)
-  >>> repr(planet_log) == output.strip()
-  True
-
-Overriding
-----------
-
-It is possible to override the default behaviour by creating a custom
-application. During traversal the `traverse_event` is called.
-
-
-.. code-block:: python
-
-  root = {'hello': {'world': 'Earth'}}
-
-  class MyApp(otto.Application):
-      my_events = []
-      def traverse_event(self, context, environ, segment):
-          self.my_events.append('Event: %s' % segment)
-
-  app = MyApp(lambda: root)
-
-  @app.route("/*")
-  def hello_world(context, environ, start_response):
-      return 'Hello World'
-
-  wsgiref.simple_server.make_server('', 8080, app).serve_forever()
-
-::
-
-  /hello/world
-
-.. -> url
-
-This creates the events directly. Since we do not call the super we
-will not activate any handlers.
-
-::
-
-  ['Event: hello', 'Event: world']
-
-.. -> output
-
-  >>> res = get_response(url, app)
-  >>> repr(app.my_events) == output.strip()
-  True

@@ -50,21 +50,15 @@ class Event(object):
     """
 
     def __init__(self):
-        self._reg = {}
-
-    def register(self, key, value):
-        self._reg[key] = value
-
-    def lookup(self, obj):
-        for key in self._get_variations(obj):
-            if key in self._reg:
-                yield self._reg[key]
-
-    def _get_variations(self, obj):
-        return type(obj).__mro__
+        self._registry = {}
 
     def __call__(self, obj, *args, **kwargs):
-        for handler in self.lookup(obj):
-            handler(obj, *args, **kwargs)
+        registry = self._registry
+        for base in type(obj).__mro__:
+            handler = registry.get(base)
+            if handler is not None:
+                handler(obj, *args, **kwargs)
 
+    def register(self, key, value):
+        self._registry[key] = value
 

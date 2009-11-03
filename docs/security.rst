@@ -1,98 +1,35 @@
 Security
 ========
 
-Most non-trivial applications require some form of security
-system. Otto uses the concept of security assertions.
+There is no security model built into the publisher; applications
+should make assertions using the exception classes from the
+:mod:`WebOb` library.
 
+An example:
+
+  >>> import otto
+  >>> import webob.exc
+  >>> import wsgiref.simple_server
+  >>> app = otto.Application()
 
 .. code-block:: python
 
-  #!/usr/bin/env python2.6
-
-  import otto
-  from otto import exc
-  import wsgiref.simple_server
-
-  app = otto.Application()
-
   @app.route("/")
-  def hello_world(environ, start_response):
-      raise exc.Forbidden
+  def controller(request):
+      raise webob.exc.HTTPForbidden("Server not accessible.")
 
-  wsgiref.simple_server.make_server('', 8080, app).serve_forever()
+  >>> wsgiref.simple_server.make_server('', 8080, app).serve_forever()
 
-Blah blah
+If we browse to ``http://localhost:8080/`` we get::
 
-::
+  403 Forbidden
 
-  Access was denied.
+  Access was denied to this resource.
+
+   Server not accessible.
 
 .. -> output
 
   >>> from otto.tests.mock.simple_server import assert_response
   >>> assert_response("/", app, output)
-
-
-Checking during traversal
--------------------------
-
-.. code-block:: python
-
-  class Resource(object):
-      def __init__(self, name):
-          self.name = name
-
-      def __getitem__(self, key):
-          return Resource(key)
-
-  root = Resource('root')
-
-  app = otto.Application(lambda: root)
-
-  @app.route("/*")
-  def hello_world(context, environ, start_response):
-      return context.name
-
-  @app.on_traverse
-  def check_not_world(context, environ, name):
-      if name == 'world':
-          raise exc.Forbidden
-
-  wsgiref.simple_server.make_server('', 8080, app).serve_forever()
-
-Let's request the following url.
-
-::
-
-  /hello
-
-.. -> url
-
-This just renders the controller.
-
-::
-
-  hello
-
-.. -> output
-
-  >>> assert_response(url, app, output)
-
-Requesting a protected url will give a different result.
-
-:: -> url
-
-  /hello/world
-
-.. -> url
-
-This will output an error message.
-
-::
-
-  Access was denied.
-
-.. -> output
-
-  >>> assert_response(url, app, output)
 

@@ -1,9 +1,11 @@
 from functools import partial
+from webob import Request
+from webob import Response
 
-from webob.exc import HTTPMovedPermanently
+from webob.exc import HTTPError
+from webob.exc import HTTPForbidden
 
 from .router import Router
-from .exc import Forbidden
 from .event import Event
 
 class Application(object):
@@ -11,62 +13,49 @@ class Application(object):
 
     :param root_factory: callable which returns a root object
 
-    The application passes ``environ`` and ``start_response`` to the
-    controller and expects an iterable as return value (or generator).
+    The application matches a route from the routing table and calls
+    the route controller. The request object is passed; controllers
+    must return a response object.
 
     If traversal is used, the result is passed on to the controller as
     the first argument.
     """
 
+    _traverse_event = None
+
     def __init__(self, root_factory=None):
         self._router = Router()
         self._root_factories = {}
         self._root_factory = root_factory
-        self._traverse_event = Event()
 
     def __call__(self, environ, start_response):
         path = environ['PATH_INFO']
-        try:
-            controller = self.match(path, environ)
-            return controller(environ, start_response)
-        except Forbidden:
-            return self.forbidden(environ, start_response)
-
-    def match(self, path, environ):
         match = self._router(path)
+        request = Request(environ)
         if match is None:
-            if path.endswith('/'):
-                path = path[:-1]
-            else:
-                path = path + '/'
-            if self._router(path):
-                if self._router(path) is not None:
-                    def redirect(request):
-                        return HTTPMovedPermanently(location=path)
-                    return redirect
-            return self.not_found
+            controller = self.not_found
+        else:
+            try:
+                controller = self.bind(match)
+            except HTTPForbidden:
+                controller = self.forbidden
+        try:
+            response = controller(request)
+        except HTTPError, response:
+            pass
+        return response(environ, start_response)
+
+    def bind(self, match):
         route = match.route
         if match.path is not None:
             root_factory = self._root_factories[route]
             root = root_factory()
-            context = self.traverse(root, match.path, environ)
+            context = self.traverse(root, match.path)
             controller = route.get(type(context))
             return partial(controller, context, **match.dict)
         else:
             controller = route.get()
             return partial(controller, **match.dict)
-
-    def _handle_error(self, start_response, status, message):
-        start_response("404 Not Found", [('Content-type', 'text/plain')])
-        return message,
-
-    def not_found(self, environ, start_response):
-        return self._handle_error(
-            start_response, "404 Not Found", "Page not found")
-
-    def forbidden(self, environ, start_response):
-        return self._handle_error(
-            start_response, "403 Forbidden", "Access was denied.")
 
     def route(self, path, root_factory=None):
         if root_factory is None:
@@ -75,44 +64,29 @@ class Application(object):
         self._root_factories[route] = root_factory
         return route
 
-    def traverse(self, root, path, environ):
+    def traverse(self, root, path):
         segments = path.split('/')
         context = root
+        event = self._traverse_event
         for segment in segments:
             context = context[segment]
-            self.traverse_event(context, environ, segment)
+            if event is not None:
+                event(context, segment)
         return context
 
-    def traverse_event(self, context, environ, segment):
-        self._traverse_event(context, environ, segment)
-
-    def on_traverse(self, func=None, **kwargs):
-        if 'type' in kwargs:
+    def on_traverse(self, func=None, type=None, **kwargs):
+        event = self.__dict__.setdefault('_traverse_event', Event())
+        if type is not None:
             def register(func):
-                self._traverse_event.register(kwargs['type'], func)
+                event.register(type, func)
                 return func
             return register
-        self._traverse_event.register(object, func)
+        event.register(object, func)
         return func
 
-class WebObApplication(Application):
-    """WSGI-application which passed a ``webob.Request`` object to the
-    controller instead of ``environ`` and ``start_response``. The
-    controller must return a ``webob.Response`` object.
-    """
-
-    def __init__(self):
-        from webob import Request, Response
-        self._request_factory = Request
-        self._response_factory = Response
-        super(WebObApplication, self).__init__()
-
-    def __call__(self, environ, start_response):
-        path = environ['PATH_INFO']
-        request = self._request_factory(environ)
-        controller = self.match(path, request)
-        response = controller(request)
-        return response(environ, start_response)
+    def forbidden(self, request):
+        return Response(u"Access was denied.", status="403 Forbidden")
 
     def not_found(self, request):
-        return self._response_factory(status=404, body='Page not found')
+        return Response(u"Page not found.", status="404 Not Found")
+
