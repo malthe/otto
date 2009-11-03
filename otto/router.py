@@ -15,13 +15,27 @@ def compile_path(path):
     >>> compile_path('/*')('/').groupdict()
     {'_star': ''}
 
+    >>> compile_path('/docs/*')('/docs/math/pi').groupdict()
+    {'_star': 'math/pi'}
+
+    >>> match = compile_path('/docs/*/:name')('/docs/math/pi')
+    >>> sorted(match.groupdict().items())
+    [('_star', 'math'), ('name', 'pi')]
+
+    >>> compile_path('/*path')('/some/path').groupdict()
+    {'path': 'some/path'}
+
+    >>> compile_path('*path')('/some/path').groupdict()
+    {'path': '/some/path'}
+
     >>> compile_path('/s/:term')('/s/abc').groupdict()['term']
     'abc'
 
     """
 
     expression = re.sub(r':([a-z]+)', r'(?P<\1>[^/]+)', path)
-    expression = expression.replace('*', '(?P<_star>.*)')
+    expression = re.sub(r'\*(?![A-Za-z_])', '(?P<_star>.*)', expression)
+    expression = re.sub(r'\*([A-Za-z_]+)', '(?P<\\1>.*)', expression)
     return re.compile(expression).match
 
 def compile_routes(routes):
