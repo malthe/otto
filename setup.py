@@ -1,6 +1,6 @@
 #!/usr/bin/env python # -- coding: utf-8 --
 
-__version__ = ''
+__version__ = 'Mk-1'
 
 import os
 import re
@@ -39,6 +39,7 @@ setup(
     keywords="wsgi publisher router",
     author="Malthe Borch",
     author_email="mborch@gmail.com",
+    url="http://www.ottohttp.org",
     install_requires=install_requires,
     license='BSD',
     packages=find_packages(),
