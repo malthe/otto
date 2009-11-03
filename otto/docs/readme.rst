@@ -34,7 +34,7 @@ wire:
       name = path.replace('/', '.')
       return __import__(name)
 
-  # the asterix matches any path; the last path segment is mapped to
+  # the asterisk matches any path; the last path segment is mapped to
   # the ``name`` keyword-argument
   @app.route("/*/:name", factory=importer)
   def representation(module, request, name=None):

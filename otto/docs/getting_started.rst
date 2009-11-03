@@ -57,7 +57,7 @@ If we visit ``http://localhost:8080/otto``, we get::
 
   >>> assert_response("/otto", app, output)
 
-Routes can include the asterix character to match any number of path
+Routes can include the asterisk character to match any number of path
 segments in a non-greedy way. The path is passed to the *route
 factory* callable [#]_ and the result is passed to the controller as
 the first argument.
