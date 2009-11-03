@@ -17,10 +17,14 @@ here = os.path.abspath(os.path.dirname(__file__))
 README = open(os.path.join(here, 'README.rst')).read()
 CHANGES = open(os.path.join(here, 'CHANGES.rst')).read()
 
+ROLES = """\
+.. role:: mod(emphasis)
+.. role:: term(emphasis)
+"""
+
 long_description = "\n\n".join((
-    README, CHANGES))
+    ROLES, README, CHANGES))
 long_description = long_description.replace('.. code-block:: python', '::')
-long_description = re.sub(r':mod:`(\D+)`', '*\\1*', long_description)
 
 version = sys.version_info[:3]
 

@@ -1,11 +1,9 @@
 Security
 ========
 
-There is no security model built into the publisher; applications
+There is no security *model* built into the publisher; applications
 should make assertions using the exception classes from the
-:mod:`WebOb` library.
-
-An example:
+:mod:`WebOb` library, e.g.:
 
 .. invisible-code-block: python
 
@@ -18,7 +16,9 @@ An example:
 
   @app.route("/")
   def controller(request):
-      raise webob.exc.HTTPForbidden("Server not accessible.")
+      if 'REMOTE_USER' not in request.environ:
+          raise webob.exc.HTTPForbidden("Server not accessible.")
+      return webob.Response(u"Welcome, %s!" % request.environ['REMOTE_USER'])
 
 .. invisible-code-block: python
 

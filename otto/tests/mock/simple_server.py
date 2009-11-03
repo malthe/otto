@@ -8,7 +8,7 @@ class make_server(object):
         pass
 
 def assert_response(url, app, value):
-    response = get_response(app, url)
+    response = get_response(app, url.strip('\n '))
     result = ''.join(response).strip().replace(' ', '').replace('\n', '')
     value = value.strip().replace(' ', '').replace('\n', '')
     assert result == value, "Response: %s does not match: %s" % (result, value)

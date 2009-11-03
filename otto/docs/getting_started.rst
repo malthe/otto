@@ -25,7 +25,7 @@ Start the application server by running the script from your shell::
 $ chmod +x hello_world.py
 $ ./hello_world.py
 
-This serves up the application on `http://localhost:8080`.
+This serves up the application on ``http://localhost:8080``.
 
 ::
 
@@ -41,7 +41,7 @@ works on any path segment and returns a unicode string value which is
 passed as keyword argument to the controller function.
 
 To continue our example application, we'll add a route which will
-return a personal greeting.
+return a personal greeting:
 
 .. code-block:: python
 
@@ -49,10 +49,9 @@ return a personal greeting.
   def hello_name(request, name=None):
       return webob.Response(u"Hello %s!" % name.capitalize())
 
-If we visit `http://localhost:8080/otto`, we get::
+If we visit ``http://localhost:8080/otto``, we get::
 
   Hello Otto!
-
 
 .. -> output
 
@@ -62,6 +61,10 @@ Routes can include the asterix character to match any number of path
 segments in a non-greedy way. The path is passed to the *route
 factory* callable [#]_ and the result is passed to the controller as
 the first argument.
+
+The following example exposes the module globals of the Python process
+on the open wire (responses are given by the representation string of
+the object):
 
 .. code-block:: python
 
@@ -79,7 +82,7 @@ the first argument.
       obj = getattr(module, name)
       return webob.Response(repr(obj))
 
-If we visit `http://localhost:8080/repr/math/pi`, we get::
+If we visit ``http://localhost:8080/repr/math/pi``, we get::
 
   3.1415926535897931
 
@@ -88,7 +91,7 @@ If we visit `http://localhost:8080/repr/math/pi`, we get::
   >>> assert_response("/repr/math/pi", app, output)
 
 We can define controllers by the type of the object returned by the
-factory.
+factory:
 
 .. code-block:: python
 
@@ -98,7 +101,7 @@ factory.
   def doc(module, request):
       return webob.Response(unicode(module.__doc__))
 
-If we visit `http://localhost:8080/docs/hotshot/stats` we get::
+If we visit ``http://localhost:8080/docs/hotshot/stats`` we get::
 
   Statistics analyzer for HotShot.
 
@@ -106,8 +109,5 @@ If we visit `http://localhost:8080/docs/hotshot/stats` we get::
 
   >>> assert_response("/docs/hotshot/stats", app, output)
 
-.. [#] An example of such a factory is a traverser which descends
-.. “down” a graph of model objects in order to find a
-.. context. Traversal is good for hierarchical data, for instance that
-.. of an object database or a file system.
+.. [#] An example of such a factory is a traverser which descends “down” a graph of model objects in order to find a context, using e.g. ``__getitem__``. Traversal is good for hierarchical data, for instance that of an object database or a file system.
 

@@ -3,9 +3,6 @@
 Reference
 =========
 
-Routes
-------
-
 Match dictionary
 
   Expressions on the form ``:key`` match any string and passes the
@@ -16,7 +13,7 @@ Match dictionary
 
   Match keys must be valid Python variable names.
 
-Traversal
+Asterix
 
   The asterix character ("*") matches any path (non-greedy). The
   publisher calls the route factory with the path and passes the
@@ -29,12 +26,12 @@ Traversal
 
   Only one asterix may be used for a single route.
 
-Object type
+Type
 
   The ``type`` parameter may be used to define a controller which is
   only available for a particular type. It's only available for routes
   which use the asterix character. Example::
 
     @index.controller('/', type=Document)
-    def view(context, *args):
+    def view(context, request):
         ...
