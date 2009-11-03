@@ -28,3 +28,9 @@ p.colophon {
   font-size: 75%;
   color: #555;
 }
+
+#mailinglist-form {
+  padding: 1em;
+  margin: 1em;
+  text-align: center;
+}
