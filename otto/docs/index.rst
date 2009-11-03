@@ -14,8 +14,6 @@ Contents
    getting_started.rst
    security.rst
    reference.rst
-   usersguide.rst
-   guidelines.rst
    glossary.rst
 
 Indices and tables
