@@ -11,7 +11,7 @@ class DoctestCase(unittest.TestCase):
         return getattr(self, test)()
 
     @classmethod
-    def test_router(cls):
+    def test_modules(cls):
         import otto.router
         import otto.event
         suite = unittest.TestSuite()
