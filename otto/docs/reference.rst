@@ -19,7 +19,8 @@ Asterix
   unnamed (not immediately followed by an identifier), the publisher
   calls the route factory with the path and passes the result to the
   controller as the first argument (before the request argument). If
-  it's named, it will be passed as keyword-argument to the controller.
+  it's named, it will be passed as keyword-argument to the
+  controller::
 
     /*
     /*path
