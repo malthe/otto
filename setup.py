@@ -1,6 +1,6 @@
 #!/usr/bin/env python # -- coding: utf-8 --
 
-__version__ = 'Mk-1'
+__version__ = '1.0'
 
 import os
 import re
