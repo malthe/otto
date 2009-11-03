@@ -12,13 +12,16 @@ def compile_path(path):
     >>> compile_path('/')('/').groupdict()
     {}
 
+    >>> compile_path('/*')('/').groupdict()
+    {'_star': ''}
+
     >>> compile_path('/s/:term')('/s/abc').groupdict()['term']
     'abc'
 
     """
 
     expression = re.sub(r':([a-z]+)', r'(?P<\1>[^/]+)', path)
-    expression = expression.replace('*', '(?P<_star>.+)')
+    expression = expression.replace('*', '(?P<_star>.*)')
     return re.compile(expression).match
 
 def compile_routes(routes):
