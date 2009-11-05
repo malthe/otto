@@ -38,6 +38,27 @@ def compile_path(path):
     expression = re.sub(r'\*([A-Za-z_]+)', '(?P<\\1>.*)', expression)
     return re.compile(expression).match
 
+def compile_reverse(path):
+    """Reverse path compile.
+
+    >>> compile_reverse('/')({})
+    '/'
+
+    >>> compile_reverse('/*')(dict(_star='some/path'))
+    '/some/path'
+
+    >>> compile_reverse('/docs/*')(dict(_star='some/path'))
+    '/docs/some/path'
+
+    >>> compile_reverse('/docs/*/:name')(dict(_star='some', name='name'))
+    '/docs/some/name'
+    """
+
+    expression = re.sub(r':([a-z]+)', '%(\\1)s', path)
+    expression = re.sub(r'\*(?![A-Za-z_])', '%(_star)s', expression)
+    expression = re.sub(r'\*([A-Za-z_]+)', '%(\\1)s', expression)
+    return expression.__mod__
+
 def compile_routes(routes):
     """Routes compiler.
 
@@ -92,11 +113,11 @@ def compile_routes(routes):
     """
 
     expression = "|".join(
-        "(^%s$)" % route.path for route in routes)
+        "(^%s$)" % route._path for route in routes)
     expression = re.sub(r':([a-z]+)', r'(?:[^/]+)', expression)
     expression = re.sub(r'\*', r'(?:.*?)', expression)
     match = re.compile("(.*)(?:%s)" % expression).match
-    matchers = [compile_path(route.path) for route in routes]
+    matchers = [compile_path(route._path) for route in routes]
 
     routes = tuple(routes)
 
@@ -116,16 +137,18 @@ def compile_routes(routes):
     return matcher
 
 class Route(object):
-    def __init__(self, path, controller=None):
-        self.path = path
+    def __init__(self, path, controller=None, traverser=None):
+        self._path = path
         self._controllers = {object: controller}
+        self._reverse = compile_reverse(path)
+        self._traverser = traverser
 
     def __call__(self, controller):
         self._controllers[object] = controller
         return self
 
     def __repr__(self):
-        return '<%s path="%s">' % (self.__class__.__name__, self.path)
+        return '<%s path="%s">' % (self.__class__.__name__, self._path)
 
     def bind(self, cls=object):
         get = self._controllers.get
@@ -140,6 +163,20 @@ class Route(object):
                 self._controllers[cls] = func
             return func
         return handler
+
+    def path(self, context=None, **kw):
+        if context is not None:
+            try:
+                reverse = self._traverser.reverse
+            except AttributeError:
+                raise NotImplementedError(
+                    "Unable to reverse resolve %s using %s." % (
+                        repr(context), repr(self._traverser)))
+
+            path = reverse(context)
+            kw['_star'] = path
+
+        return self._reverse(kw)
 
 class Router(object):
     """Router.
@@ -177,8 +214,8 @@ class Router(object):
             mapper = self._mapper = compile_routes(self.routes)
         return mapper(path)
 
-    def new(self, path, controller=None):
-        route = Route(path, controller)
+    def new(self, *args, **kwargs):
+        route = Route(*args, **kwargs)
         self.routes.append(route)
         self._mapper = None
         return route

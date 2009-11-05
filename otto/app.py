@@ -15,10 +15,10 @@ class Application(object):
     the first argument.
     """
 
-    def __init__(self, factory=None):
+    def __init__(self, traverser=None):
         self._router = Router()
-        self._factory = factory
-        self._factories = {}
+        self._traverser = traverser
+        self._resolvers = {}
 
     def __call__(self, environ, start_response):
         path = environ['PATH_INFO']
@@ -37,19 +37,20 @@ class Application(object):
     def bind(self, match):
         route = match.route
         if match.path is not None:
-            factory = self._factories[route]
-            context = factory(match.path)
+            resolver = self._resolvers[route]
+            context = resolver(match.path)
             controller = route.bind(type(context))
             return partial(controller, context, **match.dict)
         else:
             controller = route.bind()
             return partial(controller, **match.dict)
 
-    def route(self, path, factory=None):
-        if factory is None:
-            factory = self._factory
-        route = self._router.new(path)
-        self._factories[route] = factory
+    def route(self, path, traverser=None):
+        if traverser is None:
+            traverser = self._traverser
+        route = self._router.new(path, traverser=traverser)
+        if traverser is not None:
+            self._resolvers[route] = traverser.resolve
         return route
 
     def not_found(self, request):

@@ -81,9 +81,24 @@ As expected, this calls the controller and prints the greeting::
   >>> from otto.tests.mock.simple_server import assert_printed
   >>> assert_printed(code, locals(), output)
 
+Given a route, we can ask for a path. If the route keyword matching,
+those keywords must be passed in as well:
+
+.. code-block:: python
+
+  print hello_name.path(name=u"Otto")
+
+.. -> code
+
+  /Otto
+
+.. -> output
+
+  >>> assert_printed(code, locals(), output)
+
 Routes can include the asterisk character to match any number of path
-segments in a non-greedy way. The path is passed to the *route
-factory* callable [#]_ and the result is passed to the controller as
+segments in a non-greedy way. The path is passed to the traverse's
+``resolve`` method [#]_ and the result is passed to the controller as
 the first argument.
 
 The following example exposes the module globals of the Python process
@@ -94,15 +109,21 @@ the object):
 
   import sys
 
-  def importer(path):
-      name = path.replace('/', '.')
-      __import__(name)
-      return sys.modules[name]
+  class traverser:
+      @staticmethod
+      def resolve(path):
+          name = path.replace('/', '.')
+          __import__(name)
+          return sys.modules[name]
 
-  app = otto.Application(importer)
+      @staticmethod
+      def reverse(module):
+          return module.__name__.replace('.', '/')
+
+  app = otto.Application(traverser)
 
   @app.route("/repr/*/:name")
-  def controller(module, request, name=None):
+  def expose(module, request, name=None):
       obj = getattr(module, name)
       return webob.Response(repr(obj))
 
@@ -114,8 +135,24 @@ If we visit ``http://localhost:8080/repr/math/pi``, we get::
 
   >>> assert_response("/repr/math/pi", app, output)
 
+To separate out route paths from library code (such that library
+needn't be explicitly aware of routing configuration):
+
+.. code-block:: python
+
+  import math
+  print expose.path(math, name=u"pi")
+
+.. -> code
+
+  /repr/math/pi
+
+.. -> output
+
+  >>> assert_printed(code, locals(), output)
+
 We can define controllers by the type of the object returned by the
-factory:
+resolver.
 
 .. code-block:: python
 
@@ -133,5 +170,5 @@ If we visit ``http://localhost:8080/docs/hotshot/stats`` we get::
 
   >>> assert_response("/docs/hotshot/stats", app, output)
 
-.. [#] An example of such a factory is a traverser which descends “down” a graph of model objects in order to find a context, using e.g. ``__getitem__``. Traversal is good for hierarchical data, for instance that of an object database or a file system.
+.. [#] An example of such a resolver is a function which descends “down” a graph of model objects in order to find a context, using e.g. ``__getitem__``. Traversal is good for hierarchical data, for instance that of an object database or a file system.
 

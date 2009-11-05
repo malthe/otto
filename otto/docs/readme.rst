@@ -15,11 +15,22 @@ wire:
 
   #!/usr/bin/env python2.6
 
+  import sys
   import otto
   import webob.exc
   import wsgiref.simple_server
 
-  app = otto.Application()
+  # we resolve request paths by defining a traverser; for now, we only
+  # implement the ``resolve`` method -- for reverse lookups we'd also
+  # have to define the ``reverse`` method (which takes an object).
+  class traverser:
+    @staticmethod
+    def resolve(path):
+        name = path.replace('/', '.')
+        __import__(name)
+        return sys.modules[name]
+
+  app = otto.Application(traverser)
 
   # access to the home page is forbidden by this controller
   @app.route("/")
@@ -28,15 +39,9 @@ wire:
           "What? Why did you ask that? What do you "
           "know about my image manipulator?")
 
-  # for the next route we'll need a function which takes a path and
-  # returns a Python-module; this is a route factory.
-  def importer(path):
-      name = path.replace('/', '.')
-      return __import__(name)
-
   # the asterisk matches any path; the last path segment is mapped to
   # the ``name`` keyword-argument
-  @app.route("/*/:name", factory=importer)
+  @app.route("/*/:name")
   def representation(module, request, name=None):
       value = getattr(module, name)
       return webob.Response(repr(value))
