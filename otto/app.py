@@ -39,10 +39,10 @@ class Application(object):
         if match.path is not None:
             factory = self._factories[route]
             context = factory(match.path)
-            controller = route.get(type(context))
+            controller = route.bind(type(context))
             return partial(controller, context, **match.dict)
         else:
-            controller = route.get()
+            controller = route.bind()
             return partial(controller, **match.dict)
 
     def route(self, path, factory=None):

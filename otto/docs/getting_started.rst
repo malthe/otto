@@ -57,6 +57,30 @@ If we visit ``http://localhost:8080/otto``, we get::
 
   >>> assert_response("/otto", app, output)
 
+The ``hello_name`` variable now refers to the route (since the
+function was decorated using ``app.route``). We can get to the
+controller by using its ``bind`` method:
+
+.. code-block:: python
+
+  controller = hello_name.bind()
+  print controller(None, name=u"Otto")
+
+.. -> code
+
+As expected, this calls the controller and prints the greeting::
+
+  200 OK
+  Content-Type: text/html; charset=UTF-8
+  Content-Length: 11
+
+  Hello Otto!
+
+.. -> output
+
+  >>> from otto.tests.mock.simple_server import assert_printed
+  >>> assert_printed(code, locals(), output)
+
 Routes can include the asterisk character to match any number of path
 segments in a non-greedy way. The path is passed to the *route
 factory* callable [#]_ and the result is passed to the controller as

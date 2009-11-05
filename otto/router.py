@@ -122,11 +122,12 @@ class Route(object):
 
     def __call__(self, controller):
         self._controllers[object] = controller
+        return self
 
     def __repr__(self):
         return '<%s path="%s">' % (self.__class__.__name__, self.path)
 
-    def get(self, cls=object):
+    def bind(self, cls=object):
         get = self._controllers.get
         for base in cls.__mro__:
             controller = get(base)
