@@ -178,6 +178,15 @@ class Route(object):
 
         return self._reverse(kw)
 
+    def resolve(self, path):
+        try:
+            resolve = self._traverser.resolve
+        except AttributeError:
+            raise NotImplementedError(
+                "Unable to resolve %s using %s." % (
+                    repr(path), repr(self._traverser)))
+        return resolve(path)
+
 class Router(object):
     """Router.
 
@@ -189,7 +198,7 @@ class Router(object):
     >>> def controller(environ, start_response):
     ...     pass
 
-    >>> router.new('/test', controller)
+    >>> router.connect('/test', controller)
     <Route path="/test">
 
     When we pass in a matching path, a match is returned.
@@ -205,17 +214,19 @@ class Router(object):
 
     _mapper = None
 
-    def __init__(self):
-        self.routes = []
+    def __init__(self, traverser=None):
+        self._routes = []
+        self._traverser = traverser
 
     def __call__(self, path):
         mapper = self._mapper
         if mapper is None:
-            mapper = self._mapper = compile_routes(self.routes)
+            mapper = self._mapper = compile_routes(self._routes)
         return mapper(path)
 
-    def new(self, *args, **kwargs):
+    def connect(self, *args, **kwargs):
+        kwargs.setdefault('traverser', self._traverser)
         route = Route(*args, **kwargs)
-        self.routes.append(route)
+        self._routes.append(route)
         self._mapper = None
         return route
