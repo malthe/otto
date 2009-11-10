@@ -3,7 +3,7 @@
 
 # You can set these variables from the command line.
 SPHINXOPTS    = otto/docs
-SPHINXBUILD   = sphinx-build
+SPHINXBUILD   = /usr/bin/env sphinx-build
 PAPER         =
 BUILDDIR      = _build
 
