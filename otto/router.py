@@ -31,11 +31,23 @@ def compile_path(path):
     >>> compile_path('/s/:term')('/s/abc').groupdict()['term']
     'abc'
 
+    >>> compile_path('/s/(?=[abc]+):term')('/s/abc').groupdict()['term']
+    'abc'
+
+    >>> compile_path(r'/(?=.\*\.txt)*')('/test.txt').groupdict()
+    {'_star': 'test.txt'}
+
+    >>> compile_path('/(?=.+\.txt)*')('/test.txt').groupdict()
+    {'_star': 'test.txt'}
+
+    >>> compile_path('/(?=.+\.txt)*')('/test.rst') is None
+    True
     """
 
     expression = re.sub(r':([a-z]+)', r'(?P<\1>[^/]+)', path)
-    expression = re.sub(r'\*(?![A-Za-z_])', '(?P<_star>.*)', expression)
-    expression = re.sub(r'\*([A-Za-z_]+)', '(?P<\\1>.*)', expression)
+    expression = re.sub(r'(?<!\\)\*(?![A-Za-z_])', '(?P<_star>.*)', expression)
+    expression = re.sub(r'(?<!\\)\*([A-Za-z_]+)', '(?P<\\1>.*)', expression)
+    expression = re.sub(r'\\\*', '*', expression)
     return re.compile(expression).match
 
 def compile_reverse(path):

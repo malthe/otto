@@ -14,6 +14,7 @@ Contents
    getting_started.rst
    traversal.rst
    security.rst
+   faq.rst
    reference.rst
    glossary.rst
 

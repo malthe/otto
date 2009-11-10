@@ -172,3 +172,6 @@ If we visit ``http://localhost:8080/docs/hotshot/stats`` we get::
 
 .. [#] An example of such a resolver is a function which descends “down” a graph of model objects in order to find a context, using e.g. ``__getitem__``. Traversal is good for hierarchical data, for instance that of an object database or a file system.
 
+This concludes the introduction. See :ref:`frequently asked questions
+<frequently_asked_questions>` for solutions to common problems.
+
