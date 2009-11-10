@@ -3,7 +3,6 @@
 __version__ = '1.0'
 
 import os
-import re
 import sys
 
 from ez_setup import use_setuptools
@@ -28,7 +27,7 @@ long_description = long_description.replace('.. code-block:: python', '::')
 
 version = sys.version_info[:3]
 
-install_requires = []
+install_requires = ['WebOb']
 
 setup(
     name="Otto",
@@ -50,6 +49,6 @@ setup(
     include_package_data=True,
     zip_safe=False,
     test_suite="otto.tests",
-    tests_require = install_requires + ['manuel', 'WebOb'],
+    tests_require = install_requires + ['manuel'],
     )
 
