@@ -7,7 +7,7 @@ to code. It supports object traversal.
 You can use the publisher to write web applications. It was designed
 with both small and large applications in mind. We have tried to
 incorporate elements of existing publishers to allow diverse and
-flexible application patterns while still being in corcordance with
+flexible application patterns while still being in concordance with
 the :term:`Zen Of Python`.
 
 Examples of the routing syntax (the asterisk character matches any path)::
