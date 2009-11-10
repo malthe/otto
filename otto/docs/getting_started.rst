@@ -97,7 +97,7 @@ those keywords must be passed in as well:
   >>> assert_printed(code, locals(), output)
 
 Routes can include the asterisk character to match any number of path
-segments in a non-greedy way. The path is passed to the traverse's
+segments in a non-greedy way. The path is passed to the traverser's
 ``resolve`` method [#]_ and the result is passed to the controller as
 the first argument.
 

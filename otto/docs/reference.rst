@@ -1,7 +1,17 @@
-.. _syntax:
+.. _reference:
 
 Reference
 =========
+
+.. automodule:: otto
+
+  .. autoclass:: otto.Publisher
+
+  .. autoclass:: otto.Application
+
+
+Routes
+######
 
 Match dictionary
 
@@ -28,6 +38,11 @@ Asterix
     /documents/*
 
   Only one asterisk may be used for a single route.
+
+Controllers
+###########
+
+.. _predicates:
 
 Type
 

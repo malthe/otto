@@ -1,9 +1,9 @@
 Security
 ========
 
-There is no security *model* built into the publisher; applications
-should make assertions using the exception classes from the
-:mod:`WebOb` library, e.g.:
+There is no security model built into the publisher as such;
+applications should make assertions using the exception classes from
+the :mod:`WebOb` library, e.g.:
 
 .. invisible-code-block: python
 

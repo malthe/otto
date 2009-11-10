@@ -5,8 +5,33 @@ Otto is an HTTP publisher which uses a routes-like syntax to map URLs
 to code. It supports object traversal.
 
 You can use the publisher to write web applications. It was designed
-with both small and large applications in mind. In particular, it
-tries to conform to the :term:`Zen Of Python`.
+with both small and large applications in mind. We have tried to
+incorporate elements of existing publishers to allow diverse and
+flexible application patterns while still being in corcordance with
+the :term:`Zen Of Python`.
+
+Examples of the routing syntax (the asterisk character matches any path)::
+
+  /*
+  /*/edit
+  /users/:id
+  /users/:id/*subpath
+
+When a request comes in, the publisher matches the ``PATH_INFO``
+variable with the routing table to find exactly one route and extracts
+the :term:`match dict`. In case no route matches, a ``404 Not Found``
+response is returned. If the route contains a lone asterisk, a
+:term:`context` object is resolved from the path represented by the
+asterisk using a route traverser -- see :ref:`traversal
+<traversal>`. In any case, the publisher invokes the first valid
+controller, passing the match dict as keyword arguments.
+
+  request ⇾ *routing table* ⇾ route ⇾ *controllers* ⇾ controller
+
+There can be several controllers defined for a single route; each will
+then specify one or more :ref:`predicates <reference>`. Like routes,
+controllers are looked up in order of definition. The first valid
+controller is used.
 
 An example application which exposes all module globals over the open
 wire:
