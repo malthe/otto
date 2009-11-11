@@ -21,26 +21,6 @@ FAQ
   returns the host including the script name. It never ends in a
   trailing slash.
 
-**How do I handle URLs with a trailing slash?**
-
-  These URLs often indicate a container-like object. Although the two
-  spellings are fungible in the eyes of a web browser, applications
-  should not allow two same documents be returned from different URLs
-  (for both caching and SEO reasons). One variant should redirect to
-  the other -- ``301 Redirect``.
-
-  You can use middleware to redirect any request with a trailing slash
-  to the non-trailing counterpart (for ``GET`` method requests only).
-
-  Alternatively, a conditional redirection can implemented for URLs
-  not ending with a trailing slash which do not match any route, but
-  would if a slash was added. With traversal, an example of such a
-  route is::
-
-    /*/
-
-  This route matches only with a trailing slash.
-
 **How do I control what the routes match?**
 
   It is not advertised, but the routes syntax allows for regular
