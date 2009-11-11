@@ -101,26 +101,26 @@ def compile_routes(routes):
 
     The root matches and returns an empty match dict.
 
-    >>> mapper('/')
+    >>> mapper('/').next()
     Match(route=<Route path="/">, path=None, dict={})
 
     The search route only matches if a term is provided; this is
     illustrate in this example which matches the traverser route.
 
-    >>> mapper('/front-page')
+    >>> mapper('/front-page').next()
     Match(route=<Route path="/*">, path='front-page', dict={})
 
     When the term is provided, it's available in the match dict:
 
-    >>> mapper('/search/abc')
+    >>> mapper('/search/abc').next()
     Match(route=<Route path="/search/:term">, path=None, dict={'term': 'abc'})
 
     This URL demonstrates how routes can match towards the end:
 
-    >>> mapper('/front-page/manage')
+    >>> mapper('/front-page/manage').next()
     Match(route=<Route path="/*/manage">, path='front-page', dict={})
 
-    >>> mapper('/rest/doc/123').dict
+    >>> mapper('/rest/doc/123').next().dict
     {'kind': 'doc', 'id': '123'}
     """
 
@@ -138,13 +138,17 @@ def compile_routes(routes):
         if m is None:
             return
         groups = m.groups()
-        try:
-            number = groups[1:].index(path)
-        except ValueError:
-            if routes: raise
-            return
-        matchdict = matchers[number](path).groupdict()
-        return Match(routes[number], matchdict.pop('_star', None), matchdict)
+        i = 1
+        length = len(groups)
+        while i != -1:
+            try:
+                i = groups[i:].index(path)
+            except ValueError:
+                if routes: raise
+                return
+
+            matchdict = matchers[i](path).groupdict()
+            yield Match(routes[i], matchdict.pop('_star', None), matchdict)
 
     return matcher
 
@@ -215,13 +219,15 @@ class Router(object):
 
     When we pass in a matching path, a match is returned.
 
-    >>> router('/test')
+    >>> router('/test').next()
     Match(route=<Route path="/test">, path=None, dict={})
 
     If no route is matched, nothing is returned.
 
-    >>> router('/') is None
-    True
+    >>> router('/').next()
+    Traceback (most recent call last):
+     ...
+    StopIteration
     """
 
     _mapper = None

@@ -16,8 +16,9 @@ class Publisher(object):
         self._router = Router(traverser)
 
     def match(self, path):
-        match = self._router(path)
-        if match is None:
+        try:
+            match = self._router(path).next()
+        except StopIteration:
             return
         route = match.route
         if match.path is not None:
