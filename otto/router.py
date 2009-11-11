@@ -1,7 +1,14 @@
 import collections
 import re
 
+from urllib import unquote
+from .utils import quote_path_segment
+from .utils import url_quote
+
 Match = collections.namedtuple('Match', 'route path dict')
+
+re_segment = re.compile(r':([a-z]+)')
+re_stararg = re.compile(r'(?<!\\)\*(?P<name>[A-Za-z_]*)')
 
 def compile_path(path):
     """Path compile.
@@ -9,46 +16,85 @@ def compile_path(path):
     Return a regular expression match function with match groups as
     defined by the route.
 
-    >>> compile_path('/')('/').groupdict()
+    >>> matchdict = compile_path('/a/:b/*/:d/e')('/a/b/c/d/e')
+    >>> sorted(matchdict.items())
+    [('*', (u'c',)), ('b', 'b'), ('d', 'd')]
+
+    >>> matchdict = compile_path('/a/:b/*/:e')('/a/b/c/d/e')
+    >>> sorted(matchdict.items())
+    [('*', (u'c', u'd')), ('b', 'b'), ('e', 'e')]
+
+    >>> compile_path('/')('/')
     {}
 
-    >>> compile_path('/*')('/').groupdict()
-    {'_star': ''}
+    >>> compile_path('/:foo')('/')
+    {'foo': u''}
 
-    >>> compile_path('/docs/*')('/docs/math/pi').groupdict()
-    {'_star': 'math/pi'}
+    >>> compile_path('/*')('/')
+    {'*': ()}
 
-    >>> match = compile_path('/docs/*/:name')('/docs/math/pi')
-    >>> sorted(match.groupdict().items())
-    [('_star', 'math'), ('name', 'pi')]
+    >>> compile_path('/docs/*')('/docs/math/pi')
+    {'*': (u'math', u'pi')}
 
-    >>> compile_path('/*path')('/some/path').groupdict()
-    {'path': 'some/path'}
+    >>> matchdict = compile_path('/docs/*/:name')(u'/docs/math/pi')
+    >>> sorted(matchdict.items())
+    [('*', (u'math',)), ('name', u'pi')]
 
-    >>> compile_path('*path')('/some/path').groupdict()
-    {'path': '/some/path'}
+    >>> compile_path('/*path')('/some/path')
+    {'path': (u'some', u'path')}
 
-    >>> compile_path('/s/:term')('/s/abc').groupdict()['term']
-    'abc'
+    >>> compile_path('*path')('/some/path')
+    {'path': (u'some', u'path')}
 
-    >>> compile_path('/s/(?=[abc]+):term')('/s/abc').groupdict()['term']
-    'abc'
+    >>> compile_path('/s/:term')('/s/abc')['term']
+    u'abc'
 
-    >>> compile_path(r'/(?=.\*\.txt)*')('/test.txt').groupdict()
-    {'_star': 'test.txt'}
+    >>> compile_path('/s/(?=[abc]+):term')('/s/abc')['term']
+    u'abc'
 
-    >>> compile_path('/(?=.+\.txt)*')('/test.txt').groupdict()
-    {'_star': 'test.txt'}
+    >>> compile_path(r'/(?=.\*\.txt)*')('/test.txt')
+    {'*': (u'test.txt',)}
+
+    >>> compile_path('/(?=.+\.txt)*')('/test.txt')
+    {'*': (u'test.txt',)}
 
     >>> compile_path('/(?=.+\.txt)*')('/test.rst') is None
     True
     """
 
-    expression = re.sub(r':([a-z]+)', r'(?P<\1>[^/]+)', path)
-    expression = re.sub(r'(?<!\\)\*(?![A-Za-z_])', '(?P<_star>.*)', expression)
-    expression = re.sub(r'(?<!\\)\*([A-Za-z_]+)', '(?P<\\1>.*)', expression)
+    # setup star match
+    star = re_stararg.search(path)
+    if star is not None:
+        name = star.group('name') or '*'
+        path = re_stararg.sub('(?P<_star>.*?)', path)
+
+    # substitute segments into capture groups
+    expression = re_segment.sub(r'(?P<\1>[^/]*)', path)
+
+    # unescape star-escape
     expression = re.sub(r'\\\*', '*', expression)
-    return re.compile(expression).match
+    match = re.compile("^%s$" % expression).match
+
+    if star is None:
+        def groupdict(path, match=match):
+            m = match(path)
+            if m is not None:
+                matchdict = m.groupdict()
+                for key, value in matchdict.items():
+                    matchdict[key] = unquote(value).decode('utf-8')
+                return matchdict
+        return groupdict
+
+    def stargroupdict(path, match=match, name=name):
+        m = match(path)
+        if m is None:
+            return
+        matchdict = m.groupdict()
+        star = unquote(matchdict.pop('_star')).decode('utf-8')
+        matchdict[name] = tuple(filter(None, star.split('/')))
+        return matchdict
+
+    return stargroupdict
 
 def compile_reverse(path):
     """Reverse path compile.
@@ -56,20 +102,59 @@ def compile_reverse(path):
     >>> compile_reverse('/')({})
     '/'
 
-    >>> compile_reverse('/*')(dict(_star='some/path'))
+    >>> compile_reverse('/*')({'*': ('some', 'path')})
     '/some/path'
 
-    >>> compile_reverse('/docs/*')(dict(_star='some/path'))
+    >>> compile_reverse('/*')({'*': 'some/path'})
+    '/some/path'
+
+    >>> compile_reverse('/:foo*bar')({'foo': 'foo', 'bar': ('bar', 'boo')})
+    '/foo/bar/boo'
+
+    >>> compile_reverse('/docs/*')({'*': ('some', 'path')})
     '/docs/some/path'
 
-    >>> compile_reverse('/docs/*/:name')(dict(_star='some', name='name'))
+    >>> compile_reverse('/docs/*/:name')({'*': ('some',), 'name': 'name'})
     '/docs/some/name'
     """
 
     expression = re.sub(r':([a-z]+)', '%(\\1)s', path)
-    expression = re.sub(r'\*(?![A-Za-z_])', '%(_star)s', expression)
-    expression = re.sub(r'\*([A-Za-z_]+)', '%(\\1)s', expression)
-    return expression.__mod__
+
+    star = re_stararg.search(expression)
+    if star is None:
+        def generate(kw, expression=expression):
+            for key, value in kw.items():
+                kw[key] = quote_path_segment(unicode(value))
+            return expression % kw
+        return generate
+
+    start = star.start() - 1
+    if start > 0 and expression[start] != '/':
+        expression = expression[:start + 1] + '/' + expression[start + 1:]
+
+    name = star.group('name') or '*'
+    expression = re_stararg.sub('%%(%s)s' % name, expression)
+    trailing = path.endswith('/')
+
+    def generate(kw, name=name, expression=expression, trailing=trailing):
+        try:
+            star = kw.pop(name)
+        except KeyError:
+            star = ()
+        for key, value in kw.items():
+            kw[key] = quote_path_segment(unicode(value))
+        if isinstance(star, basestring):
+            star = url_quote(star.strip('/'), '/')
+        else:
+            quote = quote_path_segment
+            star = "/".join(map(quote_path_segment, star))
+        kw[name] = star
+        path = expression % kw
+        if trailing is False:
+            return path.rstrip('/')
+        return path
+
+    return generate
 
 def compile_routes(routes):
     """Routes compiler.
@@ -108,20 +193,20 @@ def compile_routes(routes):
     illustrate in this example which matches the traverser route.
 
     >>> mapper('/front-page').next()
-    Match(route=<Route path="/*">, path='front-page', dict={})
+    Match(route=<Route path="/*">, path=(u'front-page',), dict={})
 
     When the term is provided, it's available in the match dict:
 
     >>> mapper('/search/abc').next()
-    Match(route=<Route path="/search/:term">, path=None, dict={'term': 'abc'})
+    Match(route=<Route path="/search/:term">, path=None, dict={'term': u'abc'})
 
     This URL demonstrates how routes can match towards the end:
 
     >>> mapper('/front-page/manage').next()
-    Match(route=<Route path="/*/manage">, path='front-page', dict={})
+    Match(route=<Route path="/*/manage">, path=(u'front-page',), dict={})
 
     >>> mapper('/rest/doc/123').next().dict
-    {'kind': 'doc', 'id': '123'}
+    {'kind': u'doc', 'id': u'123'}
     """
 
     count = len(routes)
@@ -161,8 +246,8 @@ def compile_routes(routes):
                 if routes and i == 0: raise
                 return
 
-            matchdict = extractors[i](path).groupdict()
-            yield Match(routes[i], matchdict.pop('_star', None), matchdict)
+            matchdict = extractors[i](path)
+            yield Match(routes[i], matchdict.pop('*', None), matchdict)
 
             i += 1
 
@@ -206,7 +291,7 @@ class Route(object):
                         repr(context), repr(self._traverser)))
 
             path = reverse(context)
-            kw['_star'] = path
+            kw['*'] = path
 
         return self._reverse(kw)
 

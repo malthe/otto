@@ -25,21 +25,32 @@ Match dictionary
 
   Match keys must be valid Python variable names.
 
+  Note that all values are returned as unquoted unicode strings.
+
 Asterix
 
-  The asterisk character ("*") matches any path (non-greedy). If it's
-  unnamed (not immediately followed by an identifier), the publisher
-  calls the resolver function with the path and passes the result to
-  the controller as the first argument (before the request
-  argument). If it's named, it will be passed as keyword-argument to
-  the controller::
+  The asterisk character ("*") matches any number of path segments
+  (non-greedy).
+
+  If it's named (e.g. ``*foo``), it will be passed by keyword argument
+  to the controller.
+
+  An unnamed asterisk (not immediately followed by an identifier) will
+  invoke the the traverser. The publisher calls the traverser's
+  ``resolve`` method with the path segments (a tuple) and passes the
+  result to the controller as the first positional argument (before
+  the request argument).
+
+  Examples of routes which use the asterisk::
 
     /*
     /*path
     /*/:version
     /documents/*
 
-  Only one asterisk may be used for a single route.
+  It is invalid to use more than one asterisk in a route path. Note
+  that the asterisk may be escaped using the backslash character,
+  e.g. ``\*``.
 
 Trailing slash
 
@@ -102,6 +113,19 @@ Trailing slash
     >>> response = app.publish(request.environ)
     >>> str(response).strip() == output.strip()
     True
+
+Path generation
+
+  The ``path`` method of the route object returns a path given keyword
+  arguments. If traversal is used on the route, the path segment
+  tuple should be provided either as the first positional argument
+  (for an unnamed asterisk), or by keyword argument.
+
+  Note that for asterisk arguments, either a path segment tuple or
+  string may be provided.
+
+  All values should be unicode. The result of the ``path`` method is
+  always a quoted string.
 
 Controllers
 ###########

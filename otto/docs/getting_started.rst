@@ -111,14 +111,14 @@ the object):
 
   class traverser:
       @staticmethod
-      def resolve(path):
-          name = path.replace('/', '.')
+      def resolve(segments):
+          name = '.'.join(segments)
           __import__(name)
           return sys.modules[name]
 
       @staticmethod
       def reverse(module):
-          return module.__name__.replace('.', '/')
+          return module.__name__.split('.')
 
   app = otto.Application(traverser)
 
@@ -134,6 +134,10 @@ If we visit ``http://localhost:8080/repr/math/pi``, we get::
 .. -> output
 
   >>> assert_response("/repr/math/pi", app, output)
+
+We can ask the route to generate a path given a dictionary which
+matches the route's match dict expectations, and in this case, a
+context for the traverser.
 
 To separate out route paths from library code (such that library
 needn't be explicitly aware of routing configuration):

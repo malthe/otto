@@ -45,15 +45,17 @@ wire:
   import webob.exc
   import wsgiref.simple_server
 
-  # we resolve request paths by defining a traverser; for now, we only
-  # implement the ``resolve`` method -- for reverse lookups we'd also
-  # have to define the ``reverse`` method (which takes an object).
   class traverser:
-    @staticmethod
-    def resolve(path):
-        name = path.replace('/', '.')
-        __import__(name)
-        return sys.modules[name]
+      @staticmethod
+      def resolve(segments):
+          name = '.'.join(segments)
+          __import__(name)
+          return sys.modules[name]
+
+      # not used in this example, but included for coherence
+      @staticmethod
+      def reverse(module):
+          return module.__name__.split('.')
 
   app = otto.Application(traverser)
 
