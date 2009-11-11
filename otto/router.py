@@ -124,31 +124,47 @@ def compile_routes(routes):
     {'kind': 'doc', 'id': '123'}
     """
 
-    expression = "|".join(
-        "(^%s$)" % route._path for route in routes)
-    expression = re.sub(r':([a-z]+)', r'(?:[^/]+)', expression)
-    expression = re.sub(r'\*', r'(?:.*?)', expression)
-    match = re.compile("(.*)(?:%s)" % expression).match
-    matchers = [compile_path(route._path) for route in routes]
+    count = len(routes)
+    paths = [route._path for route in routes]
+    extractors = [compile_path(path) for path in paths]
+
+    expressions = []
+    for path in paths:
+        expression = re.sub(r':([a-z]+)', r'(?:[^/]+)', path)
+        expression = re.sub(r'\*', r'(?:.*?)', expression)
+        expressions.append(expression)
+
+    matchers = []
+    for i in range(count):
+        expression = "|".join(
+            "(^%s$)" % expression for expression in expressions[i:])
+        matcher = re.compile("(?:.*)(?:%s)" % expression).match
+        matchers.append(matcher)
+
+    del paths
+    del expressions
 
     routes = tuple(routes)
 
     def matcher(path):
-        m = match(path)
-        if m is None:
-            return
-        groups = m.groups()
-        i = 1
-        length = len(groups)
-        while i != -1:
+        i = 0
+        while i < count:
+            matcher = matchers[i]
+            m = matcher(path)
+            if m is None:
+                return
+            groups = m.groups()
+
             try:
-                i = groups[i:].index(path)
+                i += groups.index(path)
             except ValueError:
-                if routes: raise
+                if routes and i == 0: raise
                 return
 
-            matchdict = matchers[i](path).groupdict()
+            matchdict = extractors[i](path).groupdict()
             yield Match(routes[i], matchdict.pop('_star', None), matchdict)
+
+            i += 1
 
     return matcher
 
@@ -206,28 +222,8 @@ class Route(object):
 class Router(object):
     """Router.
 
-    >>> router = Router()
-
-    Routes are added using the ``add_route`` method. Each route must
-    have a unique name.
-
-    >>> def controller(environ, start_response):
-    ...     pass
-
-    >>> router.connect('/test', controller)
-    <Route path="/test">
-
-    When we pass in a matching path, a match is returned.
-
-    >>> router('/test').next()
-    Match(route=<Route path="/test">, path=None, dict={})
-
-    If no route is matched, nothing is returned.
-
-    >>> router('/').next()
-    Traceback (most recent call last):
-     ...
-    StopIteration
+    Use the ``connect`` method to add routes. It takes a path and
+    optionally keyword-arguments ``traverser`` and ``controller``.
     """
 
     _mapper = None
