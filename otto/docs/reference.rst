@@ -5,6 +5,8 @@ Reference
 
 .. automodule:: otto
 
+  .. autoclass:: otto.Router
+
   .. autoclass:: otto.Publisher
 
   .. autoclass:: otto.Application
