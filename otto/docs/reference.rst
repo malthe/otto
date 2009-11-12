@@ -3,17 +3,6 @@
 Reference
 =========
 
-API
-###
-
-.. automodule:: otto
-
-  .. autoclass:: otto.Router
-
-  .. autoclass:: otto.Publisher
-
-  .. autoclass:: otto.Application
-
 .. _routing:
 
 Routes
@@ -74,7 +63,7 @@ Trailing slash
 
   .. code-block:: python
 
-    @app.route("/")
+    @app.connect("/")
     def controler(request):
         return webob.Response(u"Hello world!")
 
@@ -145,3 +134,28 @@ Type
     @index.controller('/', type=Document)
     def view(context, request):
         ...
+
+API
+###
+
+.. automodule:: otto
+
+  .. autoclass:: otto.Router
+
+     .. method:: __init__(traverser=None)
+
+        The optional ``traverser`` argument specifies the default
+        route traverser.
+
+     .. method:: __call__(path)
+
+        Returns an iterator which yields route matches.
+
+     .. method:: route(path, controller=None, traverser=None)
+
+        Use this method to add routes.
+
+  .. autoclass:: otto.Publisher
+
+  .. autoclass:: otto.Application
+

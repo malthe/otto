@@ -305,11 +305,7 @@ class Route(object):
         return resolve(path)
 
 class Router(object):
-    """Router.
-
-    Use the ``connect`` method to add routes. It takes a path and
-    optionally keyword-arguments ``traverser`` and ``controller``.
-    """
+    """Interface to the routing engine."""
 
     _mapper = None
 
