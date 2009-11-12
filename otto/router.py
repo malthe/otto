@@ -197,6 +197,10 @@ def compile_routes(routes):
 
     >>> manage = Route('/*/manage')
 
+    This route will match all paths under ``/static``
+
+    >>> static = Route('/static/*subpath')
+
     This route will match all paths.
 
     >>> traverse = Route('/*')
@@ -205,7 +209,7 @@ def compile_routes(routes):
     important. Matches are greedy.
 
     >>> mapper = compile_routes(
-    ...    (index, manage, search, rest, traverse))
+    ...    (index, manage, search, rest, static, traverse))
 
     The root matches and returns an empty match dict.
 
@@ -230,6 +234,10 @@ def compile_routes(routes):
 
     >>> mapper('/rest/doc/123').next().dict
     {'kind': u'doc', 'id': u'123'}
+
+    >>> mapper('/static/styles/reset.css').next()
+    Match(route=<Route path="/static/*subpath">, path=None, dict={'subpath': (u'styles', u'reset.css')})
+
     """
 
     count = len(routes)
@@ -240,7 +248,7 @@ def compile_routes(routes):
         if not path.startswith('/'):
             path = '(?:/)' + path
         expression = re.sub(r':([a-z]+)', r'(?:[^/]+)', path)
-        expression = re.sub(r'\*', r'(?:.*?)', expression)
+        expression = re.sub(r'\*(?:[a-z]*)', r'(?:.*?)', expression)
         expressions.append(expression)
 
     matchers = []

@@ -1,7 +1,6 @@
 import unittest
 
 class RouterCase(unittest.TestCase):
-
     def test_empty_routes(self):
         from otto.router import Router
         router = Router()
@@ -24,3 +23,37 @@ class RouterCase(unittest.TestCase):
         self.assertEqual(matches[0].route, route1)
         self.assertEqual(matches[1].route, route2)
         self.assertEqual(matches[2].route, route4)
+
+    def test_asterisk(self):
+        from otto.router import Router
+        from otto.router import Route
+        router = Router()
+        route1 = router.connect(Route('static*subpath'))
+        matches = tuple(router('/static/style/helper.css'))
+        self.assertEqual(len(matches), 1)
+        self.assertEqual(matches[0].route, route1)
+
+    def test_asterisk_and_name(self):
+        from otto.router import Router
+        from otto.router import Route
+        router = Router()
+        route1 = router.connect(Route("/repr/*/:name"))
+        matches = tuple(router('/repr/math/pi'))
+        self.assertEqual(len(matches), 1)
+        self.assertEqual(matches[0].route, route1)
+
+class RouteCase(unittest.TestCase):
+    def test_asterisk(self):
+        from otto.router import Route
+        route1 = Route('static*subpath')
+        match1 = route1.match('/static/style/helper.css')
+        self.assertTrue(match1 is not None)
+        self.assertEqual(match1['subpath'], (u'style', u'helper.css'))
+
+    def test_asterisk_and_name(self):
+        from otto.router import Route
+        route1 = Route("/repr/*/:name")
+        match1 = route1.match('/repr/math/pi')
+        self.assertTrue(match1 is not None)
+        self.assertEqual(match1['*'], (u'math',))
+        self.assertEqual(match1['name'], u'pi')
