@@ -3,6 +3,9 @@
 Reference
 =========
 
+API
+###
+
 .. automodule:: otto
 
   .. autoclass:: otto.Router
@@ -11,6 +14,7 @@ Reference
 
   .. autoclass:: otto.Application
 
+.. _routing:
 
 Routes
 ######
