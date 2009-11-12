@@ -26,5 +26,5 @@ Here's a variation of a familiar theme::
 
 This release is compatible with Python 2.4+.
 
-See the `documentation <http://www.ottohttp.org/docs/1.0/>`_ for this release.
+See the `documentation <http://www.ottohttp.org/docs/1.1/>`_ for this release.
 
