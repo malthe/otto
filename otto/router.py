@@ -27,6 +27,9 @@ def matcher(path):
     >>> matcher('/')('/')
     {}
 
+    >>> matcher('')('/')
+    {}
+
     >>> matcher('/:foo')('/')
     {'foo': u''}
 
@@ -61,6 +64,9 @@ def matcher(path):
     >>> matcher('/(?=.+\.txt)*')('/test.rst') is None
     True
     """
+
+    if not path.startswith('/'):
+        path = '(?:/)' + path
 
     # setup star match
     star = re_stararg.search(path)
@@ -168,7 +174,7 @@ def compile_routes(routes):
 
     The following routes are complete matches.
 
-    >>> index = Route('/')
+    >>> index = Route('')
     >>> search = Route('/search/:term')
     >>> rest = Route('/rest/:kind/:id')
 
@@ -190,7 +196,7 @@ def compile_routes(routes):
     The root matches and returns an empty match dict.
 
     >>> mapper('/').next()
-    Match(route=<Route path="/">, path=None, dict={})
+    Match(route=<Route path="">, path=None, dict={})
 
     The search route only matches if a term is provided; this is
     illustrate in this example which matches the traverser route.
@@ -217,6 +223,8 @@ def compile_routes(routes):
 
     expressions = []
     for path in paths:
+        if not path.startswith('/'):
+            path = '(?:/)' + path
         expression = re.sub(r':([a-z]+)', r'(?:[^/]+)', path)
         expression = re.sub(r'\*', r'(?:.*?)', expression)
         expressions.append(expression)

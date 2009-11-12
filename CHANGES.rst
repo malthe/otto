@@ -6,6 +6,8 @@ In next release...
 Features
 ########
 
+- The leading slash is now optional in a route path definition.
+
 - The ``Route`` class now provides the ``match`` method.
 
 Backwards incompatibilities
