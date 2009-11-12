@@ -20,7 +20,7 @@ Here's a variation of a familiar theme::
 
   app = otto.Application()
 
-  @app.route("/*path/:name")
+  @app.connect("/*path/:name")
   def hello_world(request, path=None, name=u'world'):
       return webob.Response(u"An %d-deep hello %s!" % (len(path), name))
 
