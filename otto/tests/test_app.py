@@ -13,7 +13,7 @@ class ApplicationCase(unittest.TestCase):
         from otto.tests.utils import get_response
         app = Application()
         import webob.exc
-        @app.route('/')
+        @app.connect('/')
         def controller(request):
             raise webob.exc.HTTPForbidden("Forbidden.")
         response = get_response(app, '/')

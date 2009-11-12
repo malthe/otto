@@ -56,7 +56,7 @@ FAQ
         def __init__(self):
             super(Application, self).__init__()
 
-            @self.route("/rest")
+            @self.connect("/rest")
             def controller(request):
                 try:
                     handler = getattr(self, request.method)

@@ -16,7 +16,7 @@ serve up the *hello world* application.
 
   app = otto.Application()
 
-  @app.route("/")
+  @app.connect("/")
   def hello_world(request):
       return webob.Response(u"Hello world!")
 
@@ -47,7 +47,7 @@ return a personal greeting:
 
 .. code-block:: python
 
-  @app.route("/:name")
+  @app.connect("/:name")
   def hello_name(request, name=None):
       return webob.Response(u"Hello %s!" % name.capitalize())
 
@@ -60,7 +60,7 @@ If we visit ``http://localhost:8080/otto``, we get::
   >>> assert_response("/otto", app, output)
 
 The ``hello_name`` variable now refers to the route (since the
-function was decorated using ``app.route``). We can get to the
+function was decorated using ``app.connect``). We can get to the
 controller by using its ``bind`` method:
 
 .. code-block:: python
@@ -124,7 +124,7 @@ the object):
 
   app = otto.Application(traverser)
 
-  @app.route("/repr/*/:name")
+  @app.connect("/repr/*/:name")
   def expose(module, request, name=None):
       obj = getattr(module, name)
       return webob.Response(repr(obj))
@@ -162,7 +162,7 @@ resolver.
 
 .. code-block:: python
 
-  index = app.route("/docs/*")
+  index = app.connect("/docs/*")
 
   @index.controller(type=str)
   def doc(module, request):

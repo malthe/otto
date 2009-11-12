@@ -101,7 +101,7 @@ is provided on the path, e.g. ``http://localhost:8080/math/pi``.
   app = otto.Application(traverser)
 
   # access to the home page is forbidden by this controller
-  @app.route("/")
+  @app.connect("/")
   def frontpage(request):
       raise webob.exc.HTTPForbidden(
           "What? Why did you ask that? What do you "
@@ -109,7 +109,7 @@ is provided on the path, e.g. ``http://localhost:8080/math/pi``.
 
   # the asterisk matches any path; the last path segment is mapped to
   # the ``name`` keyword-argument
-  @app.route("/*/:name")
+  @app.connect("/*/:name")
   def representation(module, request, name=None):
       value = getattr(module, name)
       return webob.Response(repr(value))

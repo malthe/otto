@@ -151,11 +151,16 @@ API
 
         Returns an iterator which yields route matches.
 
-     .. method:: route(path, controller=None, traverser=None)
+     .. method:: connect(path, controller=None, traverser=None)
 
         Use this method to add routes.
 
   .. autoclass:: otto.Publisher
+
+     .. method:: __init__(traverser=None)
+
+        The optional ``traverser`` argument specifies the default
+        route traverser.
 
   .. autoclass:: otto.Application
 

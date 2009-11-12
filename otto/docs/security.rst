@@ -14,7 +14,7 @@ the :mod:`WebOb` library, e.g.:
 
 .. code-block:: python
 
-  @app.route("/")
+  @app.connect("/")
   def controller(request):
       if 'REMOTE_USER' not in request.environ:
           raise webob.exc.HTTPForbidden("Server not accessible.")

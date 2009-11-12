@@ -29,6 +29,6 @@ class Publisher(object):
             controller = route.bind()
             return partial(controller, **match.dict)
 
-    def route(self, path, **kw):
+    def connect(self, path, **kw):
         return self._router.connect(path, **kw)
 
