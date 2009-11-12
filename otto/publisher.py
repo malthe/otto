@@ -1,6 +1,6 @@
-from functools import partial
-from .router import Router
-from .router import Route
+from otto.utils import partial
+from otto.router import Router
+from otto.router import Route
 
 class Publisher(object):
     """HTTP publisher.

@@ -103,7 +103,7 @@ is provided on the path, e.g. ``http://localhost:8080/math/pi``.
   # access to the home page is forbidden by this controller
   @app.connect("/")
   def frontpage(request):
-      raise webob.exc.HTTPForbidden(
+      return webob.exc.HTTPForbidden(
           "What? Why did you ask that? What do you "
           "know about my image manipulator?")
 

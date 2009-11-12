@@ -1,7 +1,6 @@
 import os
 import unittest
 import doctest
-from functools import partial
 
 OPTIONFLAGS = (doctest.ELLIPSIS |
                doctest.NORMALIZE_WHITESPACE)
@@ -29,6 +28,7 @@ class DoctestCase(unittest.TestCase):
         m += manuel.capture.Manuel()
 
         import pkg_resources
+        from otto.utils import partial
         filename = partial(pkg_resources.resource_filename, "otto")
 
         path = filename("docs")

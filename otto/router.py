@@ -1,11 +1,25 @@
-import collections
 import re
+import operator
 
 from urllib import unquote
-from .utils import quote_path_segment
-from .utils import url_quote
+from otto.utils import quote_path_segment
+from otto.utils import url_quote
 
-Match = collections.namedtuple('Match', 'route path dict')
+try:
+    from collections import namedtuple
+    Match = namedtuple('Match', 'route path dict')
+except ImportError: # pragma no cover
+    class Match(tuple):
+        def __new__(cls, route, path, dict):
+            return tuple.__new__(cls, (route, path, dict))
+
+        def __repr__(self):
+            return '%s(route=%s, path=%s, dict=%s)' % (
+                type(self).__name__, self.route, self.path, self.dict)
+
+        route = property(operator.itemgetter(0))
+        path = property(operator.itemgetter(1))
+        dict = property(operator.itemgetter(2))
 
 re_segment = re.compile(r':([a-z]+)')
 re_stararg = re.compile(r'(?<!\\)\*(?P<name>[A-Za-z_]*)')
@@ -248,8 +262,7 @@ def compile_routes(routes):
             m = matcher(path)
             if m is None:
                 return
-            groups = m.groups()
-            i += groups.index(path)
+            i += m.lastindex - 1
             route = routes[i]
             matchdict = route.match(path)
             yield Match(routes[i], matchdict.pop('*', None), matchdict)

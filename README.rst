@@ -12,8 +12,6 @@ the :term:`Zen Of Python`.
 
 Here's a variation of a familiar theme::
 
-  #!/usr/bin/env python2.6
-
   import otto
   import webob
   import wsgiref.simple_server
@@ -25,6 +23,8 @@ Here's a variation of a familiar theme::
       return webob.Response(u"An %d-deep hello %s!" % (len(path), name))
 
   wsgiref.simple_server.make_server('', 8080, app).serve_forever()
+
+This release is compatible with Python 2.4+.
 
 See the `documentation <http://www.ottohttp.org/docs/1.0/>`_ for this release.
 

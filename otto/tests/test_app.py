@@ -15,6 +15,6 @@ class ApplicationCase(unittest.TestCase):
         import webob.exc
         @app.connect('/')
         def controller(request):
-            raise webob.exc.HTTPForbidden("Forbidden.")
+            raise webob.exc.HTTPForbidden("No access.").exception
         response = get_response(app, '/')
         self.assertTrue('403 Forbidden' in "".join(response))

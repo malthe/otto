@@ -86,3 +86,16 @@ def quote_path_segment(segment):
         _segment_cache[segment] = result
         return result
 
+try:
+    from functools import partial
+except ImportError: # pragma no cover
+    def partial(func, *args, **keywords):
+        def newfunc(*fargs, **fkeywords):
+            newkeywords = keywords.copy()
+            newkeywords.update(fkeywords)
+            return func(*(args + fargs), **newkeywords)
+        newfunc.func = func
+        newfunc.args = args
+        newfunc.keywords = keywords
+        return newfunc
+

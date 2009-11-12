@@ -2,8 +2,8 @@ Security
 ========
 
 There is no security model built into the publisher as such;
-applications should make assertions using the exception classes from
-the :mod:`WebOb` library, e.g.:
+applications should return instances of the exception response classes
+from the :mod:`WebOb` library (on Python 2.5+ ``raise`` may be used):
 
 .. invisible-code-block: python
 
@@ -17,7 +17,7 @@ the :mod:`WebOb` library, e.g.:
   @app.connect("/")
   def controller(request):
       if 'REMOTE_USER' not in request.environ:
-          raise webob.exc.HTTPForbidden("Server not accessible.")
+          return webob.exc.HTTPForbidden("Server not accessible.")
       return webob.Response(u"Welcome, %s!" % request.environ['REMOTE_USER'])
 
 .. invisible-code-block: python

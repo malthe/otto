@@ -1,6 +1,6 @@
 import sys
 from StringIO import StringIO
-from ..utils import get_response
+from otto.tests.utils import get_response
 
 class make_server(object):
     def __init__(self, host, port, app):

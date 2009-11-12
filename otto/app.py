@@ -1,8 +1,9 @@
 from webob import Request
 from webob.exc import HTTPError
+from webob.exc import HTTPException
 from webob.exc import HTTPNotFound
 from webob.exc import HTTPMovedPermanently
-from .publisher import Publisher
+from otto.publisher import Publisher
 
 class Application(Publisher):
     """WSGI-Application.
@@ -25,8 +26,10 @@ class Application(Publisher):
         path = request.path_info
         controller = self.match(path)
         if controller is None:
-            # try adding or removing a trailing slash
-            path = path.rstrip('/') if path.endswith('/') else path + '/'
+            if path.endswith('/'):
+                path = path.rstrip('/')
+            else:
+                path = path + '/'
             controller = self.match(path)
             if controller is not None:
                 request.path_info = path
@@ -38,4 +41,6 @@ class Application(Publisher):
                 response = controller(request)
             except HTTPError, response:
                 pass
+            except HTTPException, e: # pragma no cover
+                response = e.wsgi_response
         return response
