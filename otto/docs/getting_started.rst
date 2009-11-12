@@ -123,8 +123,9 @@ the object):
           return module.__name__.split('.')
 
   app = otto.Application(traverser)
+  route = app.connect("/repr/*/:name")
 
-  @app.connect("/repr/*/:name")
+  @route.controller
   def expose(module, request, name=None):
       obj = getattr(module, name)
       return webob.Response(repr(obj))

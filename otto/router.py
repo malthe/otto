@@ -10,55 +10,55 @@ Match = collections.namedtuple('Match', 'route path dict')
 re_segment = re.compile(r':([a-z]+)')
 re_stararg = re.compile(r'(?<!\\)\*(?P<name>[A-Za-z_]*)')
 
-def compile_path(path):
+def matcher(path):
     """Path compile.
 
     Return a regular expression match function with match groups as
     defined by the route.
 
-    >>> matchdict = compile_path('/a/:b/*/:d/e')('/a/b/c/d/e')
+    >>> matchdict = matcher('/a/:b/*/:d/e')('/a/b/c/d/e')
     >>> sorted(matchdict.items())
     [('*', (u'c',)), ('b', 'b'), ('d', 'd')]
 
-    >>> matchdict = compile_path('/a/:b/*/:e')('/a/b/c/d/e')
+    >>> matchdict = matcher('/a/:b/*/:e')('/a/b/c/d/e')
     >>> sorted(matchdict.items())
     [('*', (u'c', u'd')), ('b', 'b'), ('e', 'e')]
 
-    >>> compile_path('/')('/')
+    >>> matcher('/')('/')
     {}
 
-    >>> compile_path('/:foo')('/')
+    >>> matcher('/:foo')('/')
     {'foo': u''}
 
-    >>> compile_path('/*')('/')
+    >>> matcher('/*')('/')
     {'*': ()}
 
-    >>> compile_path('/docs/*')('/docs/math/pi')
+    >>> matcher('/docs/*')('/docs/math/pi')
     {'*': (u'math', u'pi')}
 
-    >>> matchdict = compile_path('/docs/*/:name')(u'/docs/math/pi')
+    >>> matchdict = matcher('/docs/*/:name')(u'/docs/math/pi')
     >>> sorted(matchdict.items())
     [('*', (u'math',)), ('name', u'pi')]
 
-    >>> compile_path('/*path')('/some/path')
+    >>> matcher('/*path')('/some/path')
     {'path': (u'some', u'path')}
 
-    >>> compile_path('*path')('/some/path')
+    >>> matcher('*path')('/some/path')
     {'path': (u'some', u'path')}
 
-    >>> compile_path('/s/:term')('/s/abc')['term']
+    >>> matcher('/s/:term')('/s/abc')['term']
     u'abc'
 
-    >>> compile_path('/s/(?=[abc]+):term')('/s/abc')['term']
+    >>> matcher('/s/(?=[abc]+):term')('/s/abc')['term']
     u'abc'
 
-    >>> compile_path(r'/(?=.\*\.txt)*')('/test.txt')
+    >>> matcher(r'/(?=.\*\.txt)*')('/test.txt')
     {'*': (u'test.txt',)}
 
-    >>> compile_path('/(?=.+\.txt)*')('/test.txt')
+    >>> matcher('/(?=.+\.txt)*')('/test.txt')
     {'*': (u'test.txt',)}
 
-    >>> compile_path('/(?=.+\.txt)*')('/test.rst') is None
+    >>> matcher('/(?=.+\.txt)*')('/test.rst') is None
     True
     """
 
@@ -96,25 +96,31 @@ def compile_path(path):
 
     return stargroupdict
 
-def compile_reverse(path):
-    """Reverse path compile.
+def generator(path):
+    """Generate path compile.
 
-    >>> compile_reverse('/')({})
+    >>> generator('/')({})
     '/'
 
-    >>> compile_reverse('/*')({'*': ('some', 'path')})
+    >>> generator('/:name/')({'name': 'foo'})
+    '/foo/'
+
+    >>> generator('/*')({'*': ('some', 'path')})
     '/some/path'
 
-    >>> compile_reverse('/*')({'*': 'some/path'})
+    >>> generator('/*/')({'*': ('some', 'path')})
+    '/some/path/'
+
+    >>> generator('/*')({'*': 'some/path'})
     '/some/path'
 
-    >>> compile_reverse('/:foo*bar')({'foo': 'foo', 'bar': ('bar', 'boo')})
+    >>> generator('/:foo*bar')({'foo': 'foo', 'bar': ('bar', 'boo')})
     '/foo/bar/boo'
 
-    >>> compile_reverse('/docs/*')({'*': ('some', 'path')})
+    >>> generator('/docs/*')({'*': ('some', 'path')})
     '/docs/some/path'
 
-    >>> compile_reverse('/docs/*/:name')({'*': ('some',), 'name': 'name'})
+    >>> generator('/docs/*/:name')({'*': ('some',), 'name': 'name'})
     '/docs/some/name'
     """
 
@@ -137,10 +143,7 @@ def compile_reverse(path):
     trailing = path.endswith('/')
 
     def generate(kw, name=name, expression=expression, trailing=trailing):
-        try:
-            star = kw.pop(name)
-        except KeyError:
-            star = ()
+        star = kw.pop(name)
         for key, value in kw.items():
             kw[key] = quote_path_segment(unicode(value))
         if isinstance(star, basestring):
@@ -211,7 +214,6 @@ def compile_routes(routes):
 
     count = len(routes)
     paths = [route._path for route in routes]
-    extractors = [compile_path(path) for path in paths]
 
     expressions = []
     for path in paths:
@@ -239,14 +241,9 @@ def compile_routes(routes):
             if m is None:
                 return
             groups = m.groups()
-
-            try:
-                i += groups.index(path)
-            except ValueError:
-                if routes and i == 0: raise
-                return
-
-            matchdict = extractors[i](path)
+            i += groups.index(path)
+            route = routes[i]
+            matchdict = route.match(path)
             yield Match(routes[i], matchdict.pop('*', None), matchdict)
 
             i += 1
@@ -254,74 +251,40 @@ def compile_routes(routes):
     return matcher
 
 class Route(object):
-    def __init__(self, path, controller=None, traverser=None):
-        self._path = path
-        self._controllers = {object: controller}
-        self._reverse = compile_reverse(path)
-        self._traverser = traverser
+    def __init__(self, path):
+        """Create route given by ``path``."""
 
-    def __call__(self, controller):
-        self._controllers[object] = controller
-        return self
+        self._path = path
+        self._generate = generator(path)
+        self.match = matcher(path)
 
     def __repr__(self):
         return '<%s path="%s">' % (self.__class__.__name__, self._path)
 
-    def bind(self, cls=object):
-        get = self._controllers.get
-        for base in cls.__mro__:
-            controller = get(base)
-            if controller is not None:
-                return controller
+    def path(self, **matchdict):
+        """Generate path given ``**matchdict``."""
 
-    def controller(self, type=object):
-        def handler(func):
-            for cls in type.__mro__:
-                self._controllers[cls] = func
-            return func
-        return handler
-
-    def path(self, context=None, **kw):
-        if context is not None:
-            try:
-                reverse = self._traverser.reverse
-            except AttributeError:
-                raise NotImplementedError(
-                    "Unable to reverse resolve %s using %s." % (
-                        repr(context), repr(self._traverser)))
-
-            path = reverse(context)
-            kw['*'] = path
-
-        return self._reverse(kw)
-
-    def resolve(self, path):
-        try:
-            resolve = self._traverser.resolve
-        except AttributeError:
-            raise NotImplementedError(
-                "Unable to resolve %s using %s." % (
-                    repr(path), repr(self._traverser)))
-        return resolve(path)
+        return self._generate(matchdict)
 
 class Router(object):
     """Interface to the routing engine."""
 
     _mapper = None
 
-    def __init__(self, traverser=None):
+    def __init__(self):
         self._routes = []
-        self._traverser = traverser
 
     def __call__(self, path):
+        """Returns an iterator which yields route matches."""
+
         mapper = self._mapper
         if mapper is None:
             mapper = self._mapper = compile_routes(self._routes)
         return mapper(path)
 
-    def connect(self, *args, **kwargs):
-        kwargs.setdefault('traverser', self._traverser)
-        route = Route(*args, **kwargs)
+    def connect(self, route):
+        """Use this method to add routes."""
+
         self._routes.append(route)
         self._mapper = None
         return route

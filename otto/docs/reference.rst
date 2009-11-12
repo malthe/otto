@@ -140,27 +140,47 @@ API
 
 .. automodule:: otto
 
-  .. autoclass:: otto.Router
+  .. autoclass:: otto.Application
+     :show-inheritance:
 
-     .. method:: __init__(traverser=None)
+     .. automethod:: __call__
 
-        The optional ``traverser`` argument specifies the default
-        route traverser.
-
-     .. method:: __call__(path)
-
-        Returns an iterator which yields route matches.
-
-     .. method:: connect(path, controller=None, traverser=None)
-
-        Use this method to add routes.
+     .. automethod:: publish
 
   .. autoclass:: otto.Publisher
 
-     .. method:: __init__(traverser=None)
+     .. automethod:: __init__
 
-        The optional ``traverser`` argument specifies the default
-        route traverser.
+     .. automethod:: connect
 
-  .. autoclass:: otto.Application
+     .. automethod:: match
 
+  .. autoclass:: otto.Router
+
+     .. automethod:: __call__
+
+     .. automethod:: connect
+
+  .. autoclass:: otto.Route
+
+     .. automethod:: __init__
+
+     .. method:: match(path)
+
+        Match the ``path`` against the route. Returns a match
+        dictionary or ``None``.
+
+     .. automethod:: path
+
+.. automodule:: otto.publisher
+
+  .. autoclass:: otto.publisher.Dispatcher
+     :show-inheritance:
+
+     .. automethod:: __init__
+
+     .. automethod:: bind
+
+     .. automethod:: controller
+
+     .. automethod:: path

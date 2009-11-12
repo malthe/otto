@@ -13,10 +13,14 @@ class Application(Publisher):
     """
 
     def __call__(self, environ, start_response):
+        """WSGI application callable."""
+
         response = self.publish(environ)
         return response(environ, start_response)
 
     def publish(self, environ):
+        """Return response for request given by ``environ``."""
+
         request = Request(environ)
         path = request.path_info
         controller = self.match(path)

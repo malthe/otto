@@ -1,5 +1,6 @@
 from functools import partial
 from .router import Router
+from .router import Route
 
 class Publisher(object):
     """HTTP publisher.
@@ -13,9 +14,15 @@ class Publisher(object):
     """
 
     def __init__(self, traverser=None):
-        self._router = Router(traverser)
+        """The optional ``traverser`` argument specifies the default
+        route traverser."""
+
+        self._router = Router()
+        self._traverser = traverser
 
     def match(self, path):
+        """Match ``path`` with routing table and return route controller."""
+
         try:
             match = self._router(path).next()
         except StopIteration:
@@ -29,6 +36,77 @@ class Publisher(object):
             controller = route.bind()
             return partial(controller, **match.dict)
 
-    def connect(self, path, **kw):
-        return self._router.connect(path, **kw)
+    def connect(self, path, controller=None, traverser=None):
+        """Use this method to add routes."""
+
+        if traverser is None:
+            traverser = self._traverser
+        route = Dispatcher(path, controller=controller, traverser=traverser)
+        self._router.connect(route)
+        return route
+
+class Dispatcher(Route):
+    """Route which integrates with publisher."""
+
+    def __init__(self, path, controller=None, traverser=None):
+        super(Dispatcher, self).__init__(path)
+        self._traverser = traverser
+        self._controllers = {object: controller}
+
+    def __call__(self, controller):
+        self._controllers[object] = controller
+        return self
+
+    def bind(self, type=None):
+        """Return controller; if ``type`` is specified, use adaptation
+        on the type hierarchy."""
+
+        if type is None:
+            type = object
+        get = self._controllers.get
+        for base in type.__mro__:
+            controller = get(base)
+            if controller is not None:
+                return controller
+
+    def controller(self, controller=None, type=None):
+        """Register ``controller`` for this route; if ``type`` is
+        provided, the controller is used only for objects that contain
+        this type in its class hierarchy."""
+
+        if type is None:
+            type = object
+        if controller is not None:
+            return self(controller)
+        def handler(func):
+            for cls in type.__mro__:
+                self._controllers[cls] = func
+            return func
+        return handler
+
+    def path(self, context=None, **matchdict):
+        """Generate route path. When traversal is used, ``context``
+        must be provided (usually as first positional argument)."""
+
+        if context is not None:
+            try:
+                reverse = self._traverser.reverse
+            except AttributeError: # pragma no cover
+                raise NotImplementedError(
+                    "Unable to generate resolve %s using %s." % (
+                        repr(context), repr(self._traverser)))
+
+            path = reverse(context)
+            matchdict['*'] = path
+
+        return super(Dispatcher, self).path(**matchdict)
+
+    def resolve(self, path):
+        try:
+            resolve = self._traverser.resolve
+        except AttributeError: # pragma no cover
+            raise NotImplementedError(
+                "Unable to resolve %s using %s." % (
+                    repr(path), repr(self._traverser)))
+        return resolve(path)
 

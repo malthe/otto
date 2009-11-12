@@ -10,15 +10,13 @@ class RouterCase(unittest.TestCase):
 
     def test_iteration(self):
         from otto.router import Router
+        from otto.router import Route
         router = Router()
 
-        def controller(environ, start_response):
-            pass
-
-        route1 = router.connect('/test', controller)
-        route2 = router.connect('/:test', controller)
-        route3 = router.connect('/no-match/:test', controller)
-        route4 = router.connect('/te:match', controller)
+        route1 = router.connect(Route('/test'))
+        route2 = router.connect(Route('/:test'))
+        route3 = router.connect(Route('/no-match/:test'))
+        route4 = router.connect(Route('/te:match'))
 
         matches = tuple(router('/test'))
         self.assertEqual(len(matches), 3)
