@@ -11,36 +11,16 @@ class RouterCase(unittest.TestCase):
         from otto.router import Router
         from otto.router import Route
         router = Router()
-
-        route1 = router.connect(Route('/test'))
-        route2 = router.connect(Route('/:test'))
-        route3 = router.connect(Route('/no-match/:test'))
-        route4 = router.connect(Route('/te:match'))
-
+        route1 = Route('/test')
+        route2 = Route('/:test')
+        route3 = Route('/no-match/:test')
+        route4 = Route('/te:match')
+        map(router.connect, (route1, route2, route3, route4))
         matches = tuple(router('/test'))
         self.assertEqual(len(matches), 3)
-
         self.assertEqual(matches[0].route, route1)
         self.assertEqual(matches[1].route, route2)
         self.assertEqual(matches[2].route, route4)
-
-    def test_asterisk(self):
-        from otto.router import Router
-        from otto.router import Route
-        router = Router()
-        route1 = router.connect(Route('static*subpath'))
-        matches = tuple(router('/static/style/helper.css'))
-        self.assertEqual(len(matches), 1)
-        self.assertEqual(matches[0].route, route1)
-
-    def test_asterisk_and_name(self):
-        from otto.router import Router
-        from otto.router import Route
-        router = Router()
-        route1 = router.connect(Route("/repr/*/:name"))
-        matches = tuple(router('/repr/math/pi'))
-        self.assertEqual(len(matches), 1)
-        self.assertEqual(matches[0].route, route1)
 
 class RouteCase(unittest.TestCase):
     def test_asterisk(self):
