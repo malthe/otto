@@ -63,7 +63,7 @@ Trailing slash
   The router comes with support for such redirection. We can
   demonstrate it with a trivial example:
 
-  .. invisible-code-block:: python
+  .. invisible-code-block: python
 
     >>> from otto import Application
     >>> app = Application()
