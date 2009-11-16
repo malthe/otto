@@ -35,5 +35,5 @@ class RouteCase(unittest.TestCase):
         route1 = Route("/repr/*/:name")
         match1 = route1.match('/repr/math/pi')
         self.assertTrue(match1 is not None)
-        self.assertEqual(match1['*'], (u'math',))
+        self.assertEqual(match1[''], (u'math',))
         self.assertEqual(match1['name'], u'pi')

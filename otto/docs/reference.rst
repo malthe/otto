@@ -22,17 +22,14 @@ Match dictionary
 
 Asterix
 
-  The asterisk character ("*") matches any number of path segments
-  (non-greedy).
+  The asterisk character ``"*"`` matches any number of path segments
+  (non-greedy). Its value is always a tuple of unquoted path segments.
 
-  If it's named (e.g. ``*foo``), it will be passed by keyword argument
-  to the controller.
+  There are two modes of operation. If the asterisk is immediately
+  followed by a Python identifier, it will available from the match
+  dictionary.
 
-  An unnamed asterisk (not immediately followed by an identifier) will
-  invoke the the traverser. The publisher calls the traverser's
-  ``resolve`` method with the path segments (a tuple) and passes the
-  result to the controller as the first positional argument (before
-  the request argument).
+  An anonymous asterisk invokes the object mapper.
 
   Examples of routes which use the asterisk::
 
@@ -44,6 +41,16 @@ Asterix
   It is invalid to use more than one asterisk in a route path. Note
   that the asterisk may be escaped using the backslash character,
   e.g. ``\*``.
+
+Object mapping
+
+  An object mapper can be defined either on the publisher/application
+  or set on individual routes.
+
+  It's function is to map paths to objects and vice-versa.
+
+  To invoke the object mapper, routes must include an anonymous
+  asterisk.
 
 Trailing slash
 
@@ -110,7 +117,7 @@ Trailing slash
 Path generation
 
   The ``path`` method of the route object returns a path given keyword
-  arguments. If traversal is used on the route, the path segment
+  arguments. If object mapping is used on the route, the path segment
   tuple should be provided either as the first positional argument
   (for an unnamed asterisk), or by keyword argument.
 

@@ -12,7 +12,7 @@ Contents
    :maxdepth: 2
 
    getting_started.rst
-   traversal.rst
+   mapping.rst
    security.rst
    faq.rst
    reference.rst

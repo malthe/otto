@@ -26,7 +26,7 @@ FAQ
   It is not advertised, but the routes syntax allows for regular
   expression usage. Some examples:
 
-  To traverse all URLs which ends in ``.txt`` we use positive
+  To match all URLs which ends in ``.txt`` we use positive
   look-ahead::
 
      /some/path/(?=.+\.txt)*

@@ -99,9 +99,9 @@ those keywords must be passed in as well:
   >>> assert_printed(code, locals(), output)
 
 Routes can include the asterisk character to match any number of path
-segments in a non-greedy way. The path is passed to the traverser's
-``resolve`` method [#]_ and the result is passed to the controller as
-the first argument.
+segments in a non-greedy way. The path is passed to the object
+mapper's ``resolve`` method [#]_ and the result is passed to the
+controller as the first argument.
 
 The following example exposes the module globals of the Python process
 on the open wire (responses are given by the representation string of
@@ -111,18 +111,18 @@ the object):
 
   import sys
 
-  class traverser:
-      @staticmethod
-      def resolve(segments):
-          name = '.'.join(segments)
+  class Modules(object):
+      """Maps paths to Python modules."""
+
+      def resolve(self, path):
+          name = '.'.join(path)
           __import__(name)
           return sys.modules[name]
 
-      @staticmethod
-      def reverse(module):
+      def reverse(self, module):
           return module.__name__.split('.')
 
-  app = otto.Application(traverser)
+  app = otto.Application(Modules)
   route = app.connect("/repr/*/:name")
 
   @route.controller
@@ -140,7 +140,7 @@ If we visit ``http://localhost:8080/repr/math/pi``, we get::
 
 We can ask the route to generate a path given a dictionary which
 matches the route's match dict expectations, and in this case, a
-context for the traverser.
+context for the mapper.
 
 To separate out route paths from library code (such that library
 needn't be explicitly aware of routing configuration):

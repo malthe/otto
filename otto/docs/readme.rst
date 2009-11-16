@@ -2,7 +2,7 @@ Overview
 ========
 
 Otto is an HTTP publisher which uses a routes-like syntax to map URLs
-to code. It supports object traversal.
+to code. It supports object mapping and traversal.
 
 You can use the publisher to write web applications. It was designed
 with both small and large applications in mind. We have tried to
@@ -10,43 +10,119 @@ incorporate elements of existing publishers to allow diverse and
 flexible application patterns while still being in concordance with
 the :term:`Zen Of Python`.
 
-Examples of the routing syntax (the asterisk character matches any path)::
+Examples of the routing syntax (the asterisk character matches any
+path)::
 
   /*
   /*/edit
   /users/:id
-  /users/:id/*subpath
+  /users/:id/*
+  /static/*static
 
-The anonymous asterisk character denotes traversal; this facilitates
-an integration between the routing system and application data which
-can be expressed as a model graph, e.g. an object database like
-:mod:`ZODB`. To learn more about routes, see the reference on :ref:`routing
-<routing>`.
+The anonymous asterisk character denotes object mapping; this
+facilitates an integration between the routing system and application
+data which can be expressed as a model graph, e.g. an object database
+like :mod:`ZODB`. To learn more about routes, see the reference on
+:ref:`routing <routing>`.
 
 Why?
 ----
 
-This package exists for three reasons: simplicity, flexibility and
-scalability. An extensive survey of the existing packages that provide
-similar functionality showed that you can choose between the first two
-and never the third [#]_.
+To put it plainly, there is nothing new under the sun here. However,
+this package exists for two reasons: simplicity and flexibility. The
+existing packages in this problem space give you one without the
+other.
 
-In general, a routing engine is tasked with mapping a request to view
-code. Most engines provide this as library functionality. The
-*publisher* is an abstraction which instead maps the request to an
-object and then to view code which applies to that particular
-object. This abstraction is usually implemented as framework
-functionality. While it is often valid to phrase problems using a
-framework, it opens a pandora's box of complexity and there are good
-reasons to keep it closed.
+**Simple**
 
-With that in mind, all examples in this documentation are written
-imperatively. There is no declarative configuration or other
-indirection. This means you can copy and paste the code right into
-your editor and start from there. There is also no inversion of
-control. The code does exactly what you expect from it -- and no more.
+  The routing syntax is clear and not cluttered with features. You
+  can't capture variables with regular expressions. To illustrate this
+  we take an example from the :mod:`Routes` package::
 
-.. [#] Some examples to back up this claim: `Bobo <http://bobo.digicool.com>`_ and `Bottle <http://bottle.paws.de/>`_ are simple, but not flexible. `Routes <http://routes.groovie.org/>`_ is flexible, but not simple. These are used by many other libraries and frameworks and cover most of the ground (conceptually, if not in terms of implementation). None of these scale -- requests are matched against routes one by one until a match is found. The engine used by the router in this package instead finds all matching routes in a single operation; it then extracts match information in a second operation. As a sidenote, the `Zope <http://www.zope.org/>`_ publisher is very flexible and very complex. It does not support the routes syntax.
+    # this is academic:
+    connect(r'/blog/{year:\d+}/{month:\d+}/{id:\d+}')
+
+  We opt for the simple version::
+
+    # this is usually what you want:
+    connect('/blog/:year/:month/:name')
+
+  Type checking and conversion is done in the controller::
+
+    def view_entry(request, year=None, month=None, name=None):
+        try:
+            year, month = int(year), int(month)
+        except TypeError:
+            return webob.Response(
+                u"This request had errors: %s." % request.url)
+        ...
+
+  Not all problems can be aptly spelled using the routes
+  syntax. Here's an example from the :mod:`bobo` framework which comes
+  with its own routes-like syntax::
+
+    @bobo.query(method='GET')
+    def get(who='world'):
+        ...
+
+    @bobo.query(method='POST')
+    def post(who='world'):
+        ...
+
+  It looks useful, but what's wrong with this::
+
+    def both(request, who='world'):
+        if request.method == 'POST':
+          ...
+        ...
+
+  Most of the time you want to handle the ``POST`` data and then
+  continue with the logic of the ``GET`` method. This needn't be
+  managed using routes.
+
+  And many properties of the HTTP environment require more than just
+  an equality match.
+
+**Flexible**
+
+  There are essentially two kinds routes: fixed length and variable
+  length. When you wire up the variable part with an *object mapper*,
+  it's called the :term:`hybrid model`. This is an optional
+  abstraction which maps path segments to an object -- often used for
+  hierarchical data like that in a file system or object database.
+
+  To illustrate, the following could be a route for a user's private
+  files which are served over :term:`WebDAV`::
+
+    /users/:id/*/edit
+
+  Example: ``/users/john/private/darknet.txt``
+
+  The asterisk matches any number of path segments, then invokes the
+  object mapper. Because the ``id`` match comes before it, this value
+  will be passed as keyword argument to the constructor::
+
+    class Mapper(object):
+        def __init__(self, id=None):
+            ...
+
+        def resolve(self, path):
+            return PlainText(os.path.join(path))
+
+  The ``resolve`` method gets a path tuple and returns any object; we
+  use the term ``context``. Route controllers can decide to respond
+  only to context objects of a certain type::
+
+    @route.controller(type=PlainText)
+    def edit(context, request)
+        ...
+
+  The ``type`` parameter is only valid for routes which use
+  mapping. The controller does not get the ``id`` parameter since it
+  was passed to the object mapper.
+
+  Complex systems can use the object mapper abstraction to integrate
+  security and other framework into the URL dispatch routine.
 
 How it works
 ------------
@@ -57,11 +133,11 @@ response. It always returns a response.
 When a request comes in, the publisher matches the ``PATH_INFO``
 variable with the routing table to find exactly one route and extracts
 the :term:`match dict`. In case no route matches, a ``404 Not Found``
-response is returned. If the route contains a lone asterisk, a
+response is returned. If the route contains an anonymous asterisk, a
 :term:`context` object is resolved from the path represented by the
-asterisk using a route traverser -- see :ref:`traversal
-<traversal>`. In any case, the publisher invokes the first valid
-controller, passing the match dict as keyword arguments.
+asterisk using an object mapper -- see :ref:`mapping <mapping>`. In
+any case, the publisher invokes the first valid controller, passing
+the match dict as keyword arguments.
 
   request ⇾ *routing table* ⇾ route ⇾ *controllers* ⇾ controller
 
@@ -86,29 +162,25 @@ is provided on the path, e.g. ``http://localhost:8080/math/pi``.
   import webob.exc
   import wsgiref.simple_server
 
-  class traverser:
-      @staticmethod
-      def resolve(segments):
-          name = '.'.join(segments)
+  class Modules(object):
+      """Maps paths to Python modules."""
+
+      def resolve(self, path):
+          name = '.'.join(path)
           __import__(name)
           return sys.modules[name]
 
-      # not used in this example, but included for coherence
-      @staticmethod
-      def reverse(module):
+      def reverse(self, module):
           return module.__name__.split('.')
 
-  app = otto.Application(traverser)
+  app = otto.Application(Modules)
 
-  # access to the home page is forbidden by this controller
   @app.connect("/")
   def frontpage(request):
       return webob.exc.HTTPForbidden(
           "What? Why did you ask that? What do you "
           "know about my image manipulator?")
 
-  # the asterisk matches any path; the last path segment is mapped to
-  # the ``name`` keyword-argument
   @app.connect("/*/:name")
   def representation(module, request, name=None):
       value = getattr(module, name)
