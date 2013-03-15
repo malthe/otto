@@ -216,7 +216,7 @@ The ``math`` library contains the ``pi`` symbol::
 
 The response body to this request is the Python string representation::
 
-  3.1415926535897931
+  3.14159265...
 
 .. -> pi_response
 

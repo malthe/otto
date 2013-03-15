@@ -6,6 +6,12 @@ always_safe = ('ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 _safemaps = {}
 _must_quote = {}
 
+try:
+    unicode
+except NameError:
+    unicode = None
+
+
 def url_quote(s, safe=''):
     """quote('abc def') -> 'abc%20def'
 

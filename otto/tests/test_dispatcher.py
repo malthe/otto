@@ -1,5 +1,6 @@
 import unittest
 
+
 class DispatcherCase(unittest.TestCase):
     def test_prefetch(self):
         from otto.publisher import Dispatcher

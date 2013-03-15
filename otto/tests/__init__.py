@@ -1,4 +1,4 @@
-import mock.simple_server
+from otto.tests import mock
 
 try:
     import wsgiref.simple_server

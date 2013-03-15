@@ -4,8 +4,8 @@ class RouterCase(unittest.TestCase):
     def test_empty_routes(self):
         from otto.router import Router
         router = Router()
-        match = router('/path').next
-        self.assertRaises(StopIteration, match)
+        gen = router('/path')
+        self.assertRaises(StopIteration, next, gen)
 
     def test_iteration(self):
         from otto.router import Router
@@ -15,7 +15,8 @@ class RouterCase(unittest.TestCase):
         route2 = Route('/:test')
         route3 = Route('/no-match/:test')
         route4 = Route('/te:match')
-        map(router.connect, (route1, route2, route3, route4))
+        for route in (route1, route2, route3, route4):
+            router.connect(route)
         matches = tuple(router('/test'))
         self.assertEqual(len(matches), 3)
         self.assertEqual(matches[0].route, route1)

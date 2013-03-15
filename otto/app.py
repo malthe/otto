@@ -39,8 +39,9 @@ class Application(Publisher):
         else:
             try:
                 response = controller(request)
-            except HTTPError, response:
-                pass
-            except HTTPException, e: # pragma no cover
+            except HTTPError as e:
+                response = e
+            except HTTPException as e:  # pragma no cover
                 response = e.wsgi_response
+
         return response

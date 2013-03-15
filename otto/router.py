@@ -1,9 +1,25 @@
 import re
 import operator
 
-from urllib import unquote
+try:
+    from urllib import unquote as _unquote
+
+    def unquote(s):
+        return _unquote(s).decode('utf-8')
+
+except ImportError:
+    from urllib.parse import unquote
+
+    basestring = str
+    unicode = None
+
 from otto.utils import quote_path_segment
 from otto.utils import url_quote
+
+try:
+    iteritems = dict.iteritems
+except AttributeError:
+    iteritems = dict.items
 
 try:
     from collections import namedtuple
@@ -76,7 +92,7 @@ def matcher(path):
 
     >>> matcher('/(?=.+\.txt)*')('/test.rst') is None
     True
-    """
+    """.replace("u'", "'" if unicode is None else "u'")
 
     if not path.startswith('/'):
         path = '(?:/)' + path
@@ -102,8 +118,8 @@ def matcher(path):
         if m is None:
             return
         d = {}
-        for k, v in m.groupdict().iteritems():
-            v = unquote(v).decode('utf-8')
+        for k, v in iteritems(m.groupdict()):
+            v = unquote(v)
             if k == '_star':
                 k = name
                 v = tuple(s for s in v.split('/') if s)

@@ -1,11 +1,11 @@
 #!/usr/bin/env python # -- coding: utf-8 --
 
-__version__ = '1.2'
+__version__ = '1.3'
 
 import os
 import sys
 
-from ez_setup import use_setuptools
+from distribute_setup import use_setuptools
 use_setuptools()
 
 from setuptools import setup, find_packages
@@ -27,7 +27,7 @@ long_description = long_description.replace('.. code-block:: python', '::')
 
 version = sys.version_info[:3]
 
-install_requires = ['WebOb']
+install_requires = ['WebOb >= 1.2']
 
 setup(
     name="Otto",

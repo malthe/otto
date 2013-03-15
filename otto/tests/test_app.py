@@ -6,7 +6,8 @@ class ApplicationCase(unittest.TestCase):
         from otto.tests.utils import get_response
         app = Application()
         response = get_response(app, '/path')
-        self.assertTrue('404 Not Found' in "".join(response))
+        strings = map(str, response)
+        self.assertTrue('404 Not Found' in "".join(strings))
 
     def test_forbidden(self):
         from otto import Application
@@ -15,6 +16,7 @@ class ApplicationCase(unittest.TestCase):
         import webob.exc
         @app.connect('/')
         def controller(request):
-            raise webob.exc.HTTPForbidden("No access.").exception
+            raise webob.exc.HTTPForbidden("No access.")
         response = get_response(app, '/')
-        self.assertTrue('403 Forbidden' in "".join(response))
+        strings = map(str, response)
+        self.assertTrue('403 Forbidden' in "".join(strings))

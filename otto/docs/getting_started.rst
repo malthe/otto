@@ -66,7 +66,7 @@ controller by using its ``bind`` method:
 .. code-block:: python
 
   controller = hello_name.bind()
-  print controller(None, name=u"Otto")
+  print(controller(None, name=u"Otto"))
 
 .. -> code
 
@@ -88,7 +88,7 @@ those keywords must be passed in as well:
 
 .. code-block:: python
 
-  print hello_name.path(name=u"Otto")
+  print(hello_name.path(name=u"Otto"))
 
 .. -> code
 
@@ -132,7 +132,7 @@ the object):
 
 If we visit ``http://localhost:8080/repr/math/pi``, we get::
 
-  3.1415926535897931
+  3.14159265358...
 
 .. -> output
 
@@ -148,7 +148,7 @@ needn't be explicitly aware of routing configuration):
 .. code-block:: python
 
   import math
-  print expose.path(math, name=u"pi")
+  print(expose.path(math, name=u"pi"))
 
 .. -> code
 
@@ -167,15 +167,22 @@ resolver.
 
   @index.controller(type=str)
   def doc(module, request):
-      return webob.Response(unicode(module.__doc__))
+      return webob.Response(str(module.__doc__))
 
-If we visit ``http://localhost:8080/docs/hotshot/stats`` we get::
+If we visit ``http://localhost:8080/docs/webob/exc`` we get::
 
-  Statistics analyzer for HotShot.
+  HTTP Exception
+  --------------
+  This module processes Python exceptions that relate to HTTP exceptions
+  by defining a set of exceptions, all subclasses of HTTPException.
+  Each exception, in addition to being a Python exception that can be
+  raised and caught, is also a WSGI application and ``webob.Response``
+  object.
+  ...
 
 .. -> output
 
-  >>> assert_response("/docs/hotshot/stats", app, output)
+  >>> assert_response("/docs/webob/exc", app, output)
 
 .. [#] An example of such a resolver is a function which descends “down” a graph of model objects in order to find a context, using e.g. ``__getitem__``. Traversal is good for hierarchical data, for instance that of an object database or a file system.
 

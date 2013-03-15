@@ -83,16 +83,20 @@ Trailing slash
   does end in a trailing slash::
 
     301 Moved Permanently
-    Content-Type: text/html; charset=UTF-8
     Content-Length: 0
-    location: http://localhost/
+    Content-Type: text/html; charset=UTF-8
+    Location: http://localhost/
 
   .. -> output
 
     >>> import webob
     >>> request = webob.Request.blank("")
     >>> response = app.publish(request.environ)
-    >>> str(response).strip() == output.strip()
+    >>> headers = sorted(response.headers.items())
+    >>> "\n".join(
+    ...    (response.status, ) +
+    ...    tuple("%s: %s" % header for header in headers)
+    ... ) == output.strip()
     True
     >>> request = webob.Request.blank("/not-exists")
     >>> response = app.publish(request.environ)

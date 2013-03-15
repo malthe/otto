@@ -27,8 +27,9 @@ class Publisher(object):
     def match(self, path):
         """Match ``path`` with routing table and return route controller."""
 
+        gen = self._router(path)
         try:
-            match = self._router(path).next()
+            match = next(gen)
         except StopIteration:
             return
 
