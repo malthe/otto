@@ -158,27 +158,6 @@ other.
   Complex systems can use the object mapper abstraction to integrate
   security and other framework into the URL dispatch routine.
 
-How it works
-------------
-
-The publisher is given an HTTP environment and returns an HTTP
-response. It always returns a response.
-
-When a request comes in, the publisher matches the ``PATH_INFO``
-variable with the routing table to find exactly one route and extracts
-the :term:`match dict`. In case no route matches, a ``404 Not Found``
-response is returned. If the route contains an anonymous asterisk, a
-:term:`context` object is resolved from the path represented by the
-asterisk using an object mapper -- see :ref:`mapping <mapping>`. In
-any case, the publisher invokes the first valid controller, passing
-the match dict as keyword arguments.
-
-  request ⇾ *routing table* ⇾ route ⇾ *controllers* ⇾ controller
-
-There can be several controllers defined for a single route; each will
-then specify one or more :ref:`predicates <reference>`. Like routes,
-controllers are looked up in order of definition. The first valid
-controller is used.
 
 Example
 -------
