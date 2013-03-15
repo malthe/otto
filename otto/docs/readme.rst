@@ -2,7 +2,7 @@ Overview
 ========
 
 Otto is an HTTP publisher which uses a routes-like syntax to map URLs
-to code. It supports object mapping and traversal.
+to code. It supports routing and traversal.
 
 You can use the publisher to write web applications. It was designed
 with both small and large applications in mind. We have tried to
@@ -10,8 +10,7 @@ incorporate elements of existing publishers to allow diverse and
 flexible application patterns while still being in concordance with
 the :term:`Zen Of Python`.
 
-Examples of the routing syntax (the asterisk character matches any
-path)::
+The routing syntax is similar to most routing-based frameworks::
 
   /*
   /*/edit
@@ -19,10 +18,45 @@ path)::
   /users/:id/*
   /static/*static
 
-The anonymous asterisk character denotes object mapping; this
-facilitates an integration between the routing system and application
-data which can be expressed as a model graph, e.g. an object database
-like :mod:`ZODB`. To learn more about routes, see the reference on
+The asterisk character matches multiple path segments. If qualified
+with a name, the segments will be assigned to the name as a list
+value. Otherwise, the controller must be configured with an object
+mapper.
+
+Here's "Hello world" in the declarative, class-based style:
+
+.. code-block:: python
+
+  #!/usr/bin/env python2.6
+
+  import otto
+  import webob
+  import wsgiref.simple_server
+
+  class Example(object):
+      wsgi = otto.Application()
+
+      @wsgi.connect("/")
+      def hello(self, request):
+          return webob.Response("Hello world")
+
+  app = Example().wsgi
+  wsgiref.simple_server.make_server('', 8080, app).serve_forever()
+
+To try out this useful application, open your web browser::
+
+  http://localhost:8080/
+
+.. -> root_input
+
+  Hello world
+
+.. -> hello_response
+
+  >>> from otto.tests.mock.simple_server import assert_response
+  >>> assert_response(root_input.split('8080')[1], app, hello_response)
+
+The routing system is explained in detail in the section on
 :ref:`routing <routing>`.
 
 Why?
@@ -208,6 +242,8 @@ is *forbidden*::
 
 .. -> denied_response
 
+  >>> assert_response(root_input.split('8080')[1], app, denied_response)
+
 The ``math`` library contains the ``pi`` symbol::
 
   http://localhost:8080/math/pi
@@ -220,8 +256,6 @@ The response body to this request is the Python string representation::
 
 .. -> pi_response
 
-  >>> from otto.tests.mock.simple_server import assert_response
-  >>> assert_response(root_input.split('8080')[1], app, denied_response)
   >>> assert_response(pi_input.split('8080')[1], app, pi_response)
 
 If you are new to the library, the :ref:`getting started <tutorial>`

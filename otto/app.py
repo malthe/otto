@@ -1,3 +1,5 @@
+import types
+
 from webob import Request
 from webob.exc import HTTPError
 from webob.exc import HTTPException
@@ -19,7 +21,13 @@ class Application(Publisher):
         response = self.publish(environ)
         return response(environ, start_response)
 
-    def publish(self, environ):
+    def __get__(self, inst, cls):
+        def wsgi_app(environ, start_response):
+            response = self.publish(environ, inst)
+            return response(environ, start_response)
+        return wsgi_app
+
+    def publish(self, environ, bind=None):
         """Return response for request given by ``environ``."""
 
         request = Request(environ)
@@ -37,6 +45,8 @@ class Application(Publisher):
             else:
                 response = HTTPNotFound("Page not found.")
         else:
+            if bind is not None:
+                controller = types.MethodType(controller, bind)
             try:
                 response = controller(request)
             except HTTPError as e:

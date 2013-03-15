@@ -2,7 +2,7 @@ Overview
 ========
 
 Otto is an HTTP publisher which uses a routes-like syntax to map URLs
-to code. It supports object traversal.
+to code. It supports routing and traversal.
 
 You can use the publisher to write web applications. It was designed
 with both small and large applications in mind. We have tried to
@@ -24,7 +24,7 @@ Here's a variation of a familiar theme::
 
   wsgiref.simple_server.make_server('', 8080, app).serve_forever()
 
-This release is compatible with Python 2.4+.
+This release is compatible with Python 2.6+ and Python 3.2+.
 
 See the `documentation <http://www.ottohttp.org/docs/1.2/>`_ for this release.
 
