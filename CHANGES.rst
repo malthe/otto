@@ -1,10 +1,13 @@
 Changes
 =======
 
-1.3 (2013-03-15)
+1.3 (unreleased)
 ----------------
 
+- Added support for a declarative, class-based style.
+
 - Added Python 3 compatibility.
+
 
 1.2 (2009-11-16)
 ----------------
